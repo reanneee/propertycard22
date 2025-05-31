@@ -65,4 +65,16 @@ class Entity extends Model
             });
         });
     }
+
+   
+
+    public function inventoryCountForms()
+    {
+        return $this->hasMany(InventoryCountForm::class, 'entity_id', 'entity_id');
+    }
+
+    public function receivedEquipment()
+    {
+        return $this->hasMany(ReceivedEquipment::class, 'entity_id', 'entity_id');
+    }
 }

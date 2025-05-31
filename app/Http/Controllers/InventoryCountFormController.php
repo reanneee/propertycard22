@@ -563,27 +563,18 @@ public function saveLinkedEquipmentItem(Request $request)
     // }
     public function show($id)
     {
-        // Get the inventory count form details
-        $inventoryForm = DB::table('inventory_count_form as icf')
-            ->join('entities as e', 'icf.entity_id', '=', 'e.entity_id')
-            ->join('branches as b', 'e.branch_id', '=', 'b.branch_id')
-            ->join('fund_clusters as fc', 'e.fund_cluster_id', '=', 'fc.id')
-            ->join('funds as f', 'icf.fund_id', '=', 'f.id')
-            ->select(
-                'icf.*',
-                'e.entity_name',
-                'b.branch_name',
-                'fc.name as fund_cluster_name',
-                'f.account_code as fund_account_code'
-            )
-            ->where('icf.id', $id)
-            ->first();
-
+        // Get the inventory count form details using Eloquent relationships
+        $inventoryForm = InventoryCountForm::with([
+            'entity.branch',
+            'entity.fundCluster', 
+            'fund'
+        ])->find($id);
+    
         if (!$inventoryForm) {
             abort(404, 'Inventory form not found');
         }
-
-        // Get detailed inventory items with property card information
+    
+        // Get detailed inventory items with property card information and PAR details
         $inventoryItems = DB::table('received_equipment_item as rei')
             ->join('received_equipment_description as red', 'rei.description_id', '=', 'red.description_id')
             ->join('received_equipment as re', 'red.equipment_id', '=', 're.equipment_id')
@@ -595,7 +586,9 @@ public function saveLinkedEquipmentItem(Request $request)
             ->leftJoin('locations as l', 'pc.locations_id', '=', 'l.id')
             ->leftJoin('linked_equipment_items as lei', 'rei.property_no', '=', 'lei.original_property_no')
             ->select(
-                // Existing fields
+                // Basic item information
+                'rei.item_id',
+                'e.entity_name',
                 'red.description as article_description',
                 'pc.article',
                 'rei.property_no as old_property_no',
@@ -606,8 +599,24 @@ public function saveLinkedEquipmentItem(Request $request)
                 END as new_property_no"),
                 'red.unit',
                 'rei.amount as unit_value',
+                'rei.date_acquired',
+                'rei.serial_no',
+                
+                // PAR information
+                're.par_no',
+                
+                // Quantity information
+                'red.quantity as original_quantity',
                 'pc.qty_physical as quantity_per_property_card',
                 'pc.qty_physical as quantity_per_physical_count',
+                
+                // Property card specific information
+                'pc.condition',
+                'pc.remarks',
+                'pc.issue_transfer_disposal',
+                'pc.received_by_name',
+                
+                // Location information
                 DB::raw("CASE 
                     WHEN l.building_name IS NOT NULL THEN 
                         CASE 
@@ -617,30 +626,24 @@ public function saveLinkedEquipmentItem(Request $request)
                         END
                     ELSE 'Not Specified' 
                 END as location_whereabouts"),
-                'pc.condition',
-                'pc.remarks',
-                'rei.serial_no',
-                'rei.date_acquired',
-                'red.quantity as original_quantity',
                 
-                // Property card specific fields
+                // Property card existence flag
                 'pc.property_card_id',
-                'rei.item_id as received_equipment_item_id',
                 DB::raw("CASE WHEN pc.property_card_id IS NOT NULL THEN 1 ELSE 0 END as has_property_card")
             )
             ->where('e.entity_id', $inventoryForm->entity_id)
             ->orderBy('red.description')
             ->orderBy('rei.property_no')
             ->get();
-
+    
         // Group items by description for better organization
         $groupedItems = $inventoryItems->groupBy('article_description');
-
+    
         // Statistics
         $totalItems = $inventoryItems->count();
         $itemsWithPropertyCards = $inventoryItems->where('has_property_card', 1)->count();
         $itemsWithoutPropertyCards = $totalItems - $itemsWithPropertyCards;
-
+    
         return view('inventory_count_form.show', compact(
             'inventoryForm', 
             'inventoryItems', 
@@ -650,6 +653,8 @@ public function saveLinkedEquipmentItem(Request $request)
             'itemsWithoutPropertyCards'
         ));
     }
+    
+  
     public function generateReport($id)
     {
         // Alternative method for generating a more detailed report

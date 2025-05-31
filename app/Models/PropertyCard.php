@@ -33,10 +33,43 @@ class PropertyCard extends Model
     ];
     public function inventoryCountForm()
     {
-        return $this->belongsTo(InventoryCountForm::class, 'inventory_count_form_id');
+        return $this->belongsTo(InventoryCountForm::class, 'inventory_count_form_id', 'id');
     }
 
- 
+  public function receivedEquipmentItem()
+  {
+      return $this->belongsTo(ReceivedEquipmentItem::class, 'received_equipment_item_id', 'item_id');
+  }
+
+  public function location()
+  {
+      return $this->belongsTo(Location::class, 'locations_id', 'id');
+  }
+
+
+  // Accessor for formatted location
+  public function getFormattedLocationAttribute()
+  {
+      if ($this->location) {
+          if ($this->location->office_name) {
+              return $this->location->building_name . ' - ' . $this->location->office_name;
+          }
+          return $this->location->building_name;
+      }
+      return 'Not Specified';
+  }
+
+  // Scope for specific inventory form
+  public function scopeForInventoryForm($query, $inventoryFormId)
+  {
+      return $query->where('inventory_count_form_id', $inventoryFormId);
+  }
+
+  // Scope for specific condition
+  public function scopeByCondition($query, $condition)
+  {
+      return $query->where('condition', $condition);
+  }
 
     // Accessor for getting equipment description through the relationship chain
     public function getDescriptionAttribute()

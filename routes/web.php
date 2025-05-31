@@ -38,55 +38,92 @@ Route::middleware('auth')->group(function () {
     Route::get('/received_equipment/{id}/generate-pdf', [ReceivedEquipmentController::class, 'generatePdf'])
         ->name('received_equipment.generate_pdf');
     Route::delete('received_equipment/descriptions/{descriptionId}/items/{itemId}', [ReceivedEquipmentController::class, 'deleteEquipmentItem'])->name('received_equipment.delete_item');
-   Route::put('/received_equipment/{received_equipment}', [ReceivedEquipmentController::class, 'update'])->name('received_equipment.update');
+    Route::put('/received_equipment/{received_equipment}', [ReceivedEquipmentController::class, 'update'])->name('received_equipment.update');
     Route::get('/received_equipment/{received_equipment}/edit', [ReceivedEquipmentController::class, 'edit'])->name('received_equipment.edit');
 
 
     Route::prefix('property-cards')->name('property_cards.')->group(function () {
-    // Main CRUD routes
-    Route::get('/', [PropertyCardController::class, 'index'])->name('index');
-    Route::get('/create', [PropertyCardController::class, 'create'])->name('create');
-    Route::post('/', [PropertyCardController::class, 'store'])->name('store');
-    Route::get('/{descriptionId}/show', [PropertyCardController::class, 'show'])->name('show');
-    Route::get('/{id}/edit', [PropertyCardController::class, 'edit'])->name('edit');
-    Route::put('/{id}', [PropertyCardController::class, 'update'])->name('update');
-    Route::delete('/{id}', [PropertyCardController::class, 'destroy'])->name('destroy');
-    
-    // Print and PDF routes
-    Route::get('/{descriptionId}/print', [PropertyCardController::class, 'printView'])->name('print');
-    Route::get('/{descriptionId}/pdf', [PropertyCardController::class, 'generatePDF'])->name('pdf');
-    
-    // API routes for AJAX calls
-    Route::get('/api/{descriptionId}/data', [PropertyCardController::class, 'getPropertyCardData'])->name('api.data');
-    Route::get('/api/descriptions', [PropertyCardController::class, 'getUniqueDescriptions'])->name('api.descriptions');
+        // Main CRUD routes
+        Route::get('/', [PropertyCardController::class, 'index'])->name('index');
+        Route::get('/create', [PropertyCardController::class, 'create'])->name('create');
+        Route::post('/', [PropertyCardController::class, 'store'])->name('store');
+        Route::get('/{descriptionId}/show', [PropertyCardController::class, 'show'])->name('show');
+        Route::get('/{id}/edit', [PropertyCardController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [PropertyCardController::class, 'update'])->name('update');
+        Route::delete('/{id}', [PropertyCardController::class, 'destroy'])->name('destroy');
+
+        // Print and PDF routes
+        Route::get('/{descriptionId}/print', [PropertyCardController::class, 'printView'])->name('print');
+        Route::get('/{descriptionId}/pdf', [PropertyCardController::class, 'generatePDF'])->name('pdf');
+
+        // API routes for AJAX calls
+        Route::get('/api/{descriptionId}/data', [PropertyCardController::class, 'getPropertyCardData'])->name('api.data');
+        Route::get('/api/descriptions', [PropertyCardController::class, 'getUniqueDescriptions'])->name('api.descriptions');
+    });
+
+    // Property Cards CRUD Routes
+    Route::resource('property_cards', PropertyCardController::class)->parameters([
+        'property_cards' => 'propertyCard'
+    ]);
+
+    // Additional route for AJAX equipment items loading
+    Route::get('property_cards/get-equipment-items', [PropertyCardController::class, 'getEquipmentItems'])
+        ->name('property_cards.get_equipment_items');
+
+    // Optional: Property Cards routes with prefix and middleware
+    Route::prefix('inventory')->middleware(['auth'])->group(function () {
+        Route::resource('property_cards', PropertyCardController::class)->parameters([
+            'property_cards' => 'propertyCard'
+        ]);
+
+        Route::get('property_cards/get-equipment-items', [PropertyCardController::class, 'getEquipmentItems'])
+            ->name('property_cards.get_equipment_items');
+    });
+
+    // If you want to add property cards to specific inventory forms
+    Route::get('inventory/{inventoryForm}/property_cards/create', [PropertyCardController::class, 'create'])
+        ->name('inventory.property_cards.create');
+
+    // Bulk operations (optional)
+    Route::post('property_cards/bulk-delete', [PropertyCardController::class, 'bulkDelete'])
+        ->name('property_cards.bulk_delete');
+
+    Route::post('property_cards/bulk-update-condition', [PropertyCardController::class, 'bulkUpdateCondition'])
+        ->name('property_cards.bulk_update_condition');
+
+    // Inventory routes
+    Route::get('/inventory/create', [InventoryCountFormController::class, 'create'])->name('inventory.create');
+    Route::post('/inventory/create', [InventoryCountFormController::class, 'createInventory'])->name('inventory.create.post');
+    Route::post('/inventory', [InventoryCountFormController::class, 'store'])->name('inventory.store');
+    Route::get('/inventory', [InventoryCountFormController::class, 'index'])->name('inventory.index');
+    Route::get('/inventory/{id}', [InventoryCountFormController::class, 'show'])->name('inventory.show');
+    Route::get('/inventory/{id}', [InventoryCountFormController::class, 'show'])->name('inventory.show');
+    Route::get('inventory/{id}/edit', [InventoryCountFormController::class, 'edit'])->name('inventory.edit');
+    Route::get('/inventory/{id}/report', [InventoryCountFormController::class, 'generateReport'])->name('inventory.report');
+    //
+
+    Route::post('inventory/bulk-delete', [InventoryCountFormController::class, 'bulkDelete'])->name('inventory.bulk-delete');
+    Route::post('inventory/export', [InventoryCountFormController::class, 'export'])->name('inventory.export');
+    Route::get('inventory/{id}/print', [InventoryCountFormController::class, 'print'])
+        ->name('inventory.print');
+    // API routes
+    Route::post('/api/generate-property-number', [ReceivedEquipmentDescriptionController::class, 'generatePropertyNumber']);
+    Route::post('/api/save-linked-equipment-item', [InventoryCountFormController::class, 'saveLinkedEquipmentItem']);
+
+
+    //
+    Route::resource('inventory-count-form', PropertyCardController::class);
+    Route::get(
+        '/inventory-count-form/{inventoryFormId}/item/{itemId}/details',
+        [PropertyCardController::class, 'showItemDetails']
+    )
+        ->name('inventory-count-form.item-details');
+
+    Route::get('/inventory-count-form/{inventoryFormId}/item/{itemId}/edit', [PropertyCardController::class, 'editItemDetails'])
+        ->name('inventory-count-form.edit-item-details');
+
+    Route::put('/inventory-count-form/{inventoryFormId}/item/{itemId}', [PropertyCardController::class, 'updateItemDetails'])
+        ->name('inventory-count-form.update-item-details');
 });
 
-// Inventory routes
-Route::get('/inventory/create', [InventoryCountFormController::class, 'create'])->name('inventory.create');
-Route::post('/inventory/create', [InventoryCountFormController::class, 'createInventory'])->name('inventory.create.post');
-Route::post('/inventory', [InventoryCountFormController::class, 'store'])->name('inventory.store');
-Route::get('/inventory', [InventoryCountFormController::class, 'index'])->name('inventory.index');
-Route::get('/inventory/{id}', [InventoryCountFormController::class, 'show'])->name('inventory.show');
-Route::get('/inventory/{id}', [InventoryCountFormController::class, 'show'])->name('inventory.show');
-Route::get('inventory/{id}/edit', [InventoryCountFormController::class, 'edit'])->name('inventory.edit');
-Route::get('/inventory/{id}/report', [InventoryCountFormController::class, 'generateReport'])->name('inventory.report');
-//
 
-Route::post('inventory/bulk-delete', [InventoryCountFormController::class, 'bulkDelete'])->name('inventory.bulk-delete');
-Route::post('inventory/export', [InventoryCountFormController::class, 'export'])->name('inventory.export');
-Route::get('inventory/{id}/print', [InventoryCountFormController::class, 'print'])
-    ->name('inventory.print');
-// API routes
-Route::post('/api/generate-property-number', [ReceivedEquipmentDescriptionController::class, 'generatePropertyNumber']);
-Route::post('/api/save-linked-equipment-item', [InventoryCountFormController::class, 'saveLinkedEquipmentItem']);
-});
-
-
-//
-// Route::resource('property-cards', PropertyCardController::class);
-// Route::get('inventory/{inventoryFormId}/create-property-card/{itemId}', [PropertyCardController::class, 'createFromInventoryItem'])
-//     ->name('property-cards.create-from-inventory');
-// Route::get('inventory/{inventoryFormId}/bulk-property-cards', [PropertyCardController::class, 'bulkCreateForInventory'])
-//     ->name('property-cards.bulk-create');
-// Route::post('property-cards/bulk-store', [PropertyCardController::class, 'bulkStore'])
-//     ->name('property-cards.bulk-store');

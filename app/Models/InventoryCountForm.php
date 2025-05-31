@@ -46,48 +46,86 @@ class InventoryCountForm extends Model
     return $this->hasOne(InventoryCountForm::class, 'entity_id', 'entity_id');
 }
 
-// Entity.php Model - add this method  
-public function inventoryCountForms()
-{
-    return $this->hasMany(InventoryCountForm::class, 'entity_id', 'entity_id');
-}
-
+/**
+ * Get the fund associated with the inventory count form.
+ */
 public function fund()
-    {
-        return $this->belongsTo(Fund::class, 'fund_id');
-    }
-
-    
-    /**
-     * Scope to filter by entity
-     */
-    public function scopeByEntity($query, $entityId)
-    {
-        return $query->where('entity_id', $entityId);
-    }
-
-    /**
-     * Scope to filter by fund
-     */
-    public function scopeByFund($query, $fundId)
-    {
-        return $query->where('fund_id', $fundId);
-    }
-
-    /**
-     * Scope to filter by date range
-     */
-    public function scopeByDateRange($query, $startDate, $endDate)
-    {
-        return $query->whereBetween('inventory_date', [$startDate, $endDate]);
-    }
-
-
-
-public function receivedEquipmentItem()
 {
-    return $this->belongsTo(ReceivedEquipmentItem::class, 'received_equipment_item_id', 'item_id');
+    return $this->belongsTo(Fund::class, 'fund_id');
 }
 
+
+
+/**
+ * Get all received equipment items through property cards.
+ */
+public function receivedEquipmentItems()
+{
+    return $this->hasManyThrough(
+        ReceivedEquipmentItem::class,
+        PropertyCard::class,
+        'inventory_count_form_id', // Foreign key on property_cards table
+        'item_id', // Foreign key on received_equipment_item table
+        'id', // Local key on inventory_count_form table
+        'received_equipment_item_id' // Local key on property_cards table
+    );
+}
+
+/**
+ * Scope for filtering by entity
+ */
+public function scopeByEntity($query, $entityId)
+{
+    return $query->where('entity_id', $entityId);
+}
+
+/**
+ * Scope for filtering by fund
+ */
+public function scopeByFund($query, $fundId)
+{
+    return $query->where('fund_id', $fundId);
+}
+
+/**
+ * Scope for filtering by date range
+ */
+public function scopeByDateRange($query, $startDate, $endDate)
+{
+    return $query->whereBetween('inventory_date', [$startDate, $endDate]);
+}
+
+/**
+ * Get formatted inventory date
+ */
+public function getFormattedInventoryDateAttribute()
+{
+    return $this->inventory_date ? $this->inventory_date->format('M d, Y') : null;
+}
+
+/**
+ * Check if inventory form has property cards
+ */
+public function hasPropertyCards()
+{
+    return $this->propertyCards()->exists();
+}
+
+/**
+ * Get total items count
+ */
+public function getTotalItemsCount()
+{
+    return $this->propertyCards()->count();
+}
+
+/**
+ * Get total value of all items
+ */
+public function getTotalValue()
+{
+    return $this->receivedEquipmentItems()
+        ->sum('received_equipment_item.amount');
+}
 
 }

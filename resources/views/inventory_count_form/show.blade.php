@@ -1,178 +1,241 @@
 @extends('layouts.app')
 
-@section('title', 'Inventory Report')
-
 @section('content')
 <div class="container-fluid">
     <div class="row">
         <div class="col-12">
             <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h3 class="card-title">Inventory Report</h3>
-                    <div class="btn-group">
-                        <button type="button" class="btn btn-primary"   href="{{ route('inventory.print', $inventoryForm->id) }}" class="btn btn-success">
-                            <i class="fas fa-print"></i> Print Report
+                <div class="card-header">
+                    <h3 class="card-title">Inventory Count Form Details</h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+                            <i class="fas fa-minus"></i>
                         </button>
-                        <a href="{{ route('inventory.report', $inventoryForm->id) }}" class="btn btn-success">
-                            <i class="fas fa-file-excel"></i> Export to Excel
+                        <a href="{{ route('inventory-count-form.index') }}" class="btn btn-secondary btn-sm">
+                            <i class="fas fa-arrow-left me-1"></i>Back to List
                         </a>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">
+                            <i class="fas fa-print me-1"></i>Print Report
+                        </button>
                     </div>
                 </div>
-                
                 <div class="card-body">
-                    <!-- Report Title and Fund Information -->
-                    <div class="text-center mb-4">
-                        @if($inventoryForm->title)
-                            <h2 class="font-weight-bold text-primary mb-3">{{ $inventoryForm->title }}</h2>
-                        @else
-                            <h2 class="font-weight-bold text-primary mb-3">INVENTORY REPORT</h2>
-                        @endif
-                        
-                        @if($inventoryForm->fund_account_code)
-                            <div class="alert alert-info">
-                                <h4 class="mb-0">
-                                    <i class="fas fa-money-bill-wave"></i> 
-                                    Fund Account Code: <strong>{{ $inventoryForm->fund_account_code }}</strong>
-                                </h4>
-                            </div>
-                        @endif
-                    </div>
-
-                    <!-- Header Information -->
+                    <!-- Form Information -->
                     <div class="row mb-4">
                         <div class="col-md-6">
-                            <table class="table table-borderless">
-                                <tr>
-                                    <td><strong>Entity:</strong></td>
-                                    <td>{{ $inventoryForm->entity_name }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Branch:</strong></td>
-                                    <td>{{ $inventoryForm->branch_name }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Fund Cluster:</strong></td>
-                                    <td>{{ $inventoryForm->fund_cluster_name }}</td>
-                                </tr>
-                                @if($inventoryForm->fund_account_code)
-                                <tr>
-                                    <td><strong>Fund Account Code:</strong></td>
-                                    <td><span class="badge badge-primary">{{ $inventoryForm->fund_account_code }}</span></td>
-                                </tr>
-                                @endif
-                            </table>
+                            <div class="info-section">
+                                <h5 class="section-title">Entity Information</h5>
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <td><strong>Entity:</strong></td>
+                                        <td>{{ $inventoryForm->entity->entity_name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Branch:</strong></td>
+                                        <td>{{ $inventoryForm->entity->branch->branch_name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Fund Cluster:</strong></td>
+                                        <td>{{ $inventoryForm->entity->fundCluster->name }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Fund Account Code:</strong></td>
+                                        <td>{{ $inventoryForm->fund->account_code }}</td>
+                                    </tr>
+                                </table>
+                            </div>
                         </div>
                         <div class="col-md-6">
-                            <table class="table table-borderless">
-                                <tr>
-                                    <td><strong>Inventory Date:</strong></td>
-                                    <td>{{ $inventoryForm->inventory_date ? \Carbon\Carbon::parse($inventoryForm->inventory_date)->format('F d, Y') : 'Not Set' }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Prepared By:</strong></td>
-                                    <td>{{ $inventoryForm->prepared_by_name ?? 'Not Set' }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Position:</strong></td>
-                                    <td>{{ $inventoryForm->prepared_by_position ?? 'Not Set' }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Reviewed By:</strong></td>
-                                    <td>{{ $inventoryForm->reviewed_by_name ?? 'Not Set' }}</td>
-                                </tr>
-                                <tr>
-                                    <td><strong>Position:</strong></td>
-                                    <td>{{ $inventoryForm->reviewed_by_position ?? 'Not Set' }}</td>
-                                </tr>
-                            </table>
+                            <div class="info-section">
+                                <h5 class="section-title">Form Details</h5>
+                                <table class="table table-borderless">
+                                    <tr>
+                                        <td><strong>Inventory Date:</strong></td>
+                                        <td>{{ $inventoryForm->formatted_inventory_date ?? 'Not Set' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Title:</strong></td>
+                                        <td>{{ $inventoryForm->title ?? 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Prepared By:</strong></td>
+                                        <td>{{ $inventoryForm->prepared_by_name ?? 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Reviewed By:</strong></td>
+                                        <td>{{ $inventoryForm->reviewed_by_name ?? 'N/A' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Status:</strong></td>
+                                        <td>
+                                            <span class="badge bg-{{ $inventoryForm->status === 'completed' ? 'success' : ($inventoryForm->status === 'pending' ? 'warning' : 'secondary') }}">
+                                                {{ ucfirst($inventoryForm->status ?? 'draft') }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Statistics -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-info"><i class="fas fa-boxes"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Total Items</span>
+                                    <span class="info-box-number">{{ $totalItems }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-success"><i class="fas fa-check"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">With Property Cards</span>
+                                    <span class="info-box-number">{{ $itemsWithPropertyCards }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-warning"><i class="fas fa-exclamation-triangle"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Without Property Cards</span>
+                                    <span class="info-box-number">{{ $itemsWithoutPropertyCards }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="info-box">
+                                <span class="info-box-icon bg-primary"><i class="fas fa-dollar-sign"></i></span>
+                                <div class="info-box-content">
+                                    <span class="info-box-text">Total Value</span>
+                                    <span class="info-box-number">₱{{ number_format($totalValue ?? 0, 2) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Filter and Export Options -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="filter-section">
+                                <label for="conditionFilter" class="form-label">Filter by Condition:</label>
+                                <select id="conditionFilter" class="form-select form-select-sm">
+                                    <option value="">All Conditions</option>
+                                    <option value="Good">Good</option>
+                                    <option value="Fair">Fair</option>
+                                    <option value="Poor">Poor</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <div class="export-options">
+                                <button type="button" class="btn btn-outline-success btn-sm" onclick="exportToExcel()">
+                                    <i class="fas fa-file-excel me-1"></i>Export Excel
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="exportToPDF()">
+                                    <i class="fas fa-file-pdf me-1"></i>Export PDF
+                                </button>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Inventory Items Table -->
                     <div class="table-responsive">
-                        <table class="table table-bordered table-striped">
-                            <thead class="thead-dark">
+                        <table class="table table-bordered table-striped table-hover" id="inventoryTable">
+                            <thead class="table-dark">
                                 <tr>
-                                    <th rowspan="2" class="text-center align-middle">#</th>
-                                    <th rowspan="2" class="text-center align-middle">Article/Item Description</th>
-                                    <th colspan="2" class="text-center">Property No.</th>
-                                    <th rowspan="2" class="text-center align-middle">Unit of Measurement</th>
-                                    <th rowspan="2" class="text-center align-middle">Unit Value</th>
-                                    <th colspan="2" class="text-center">Quantity</th>
-                                    <th rowspan="2" class="text-center align-middle">Location/Whereabouts</th>
-                                    <th rowspan="2" class="text-center align-middle">Condition</th>
-                                    <th rowspan="2" class="text-center align-middle">Remarks</th>
-                                </tr>
-                                <tr>
-                                    <th class="text-center">Old Property No.</th>
-                                    <th class="text-center">Assigned New Property No.</th>
-                                    <th class="text-center">Per Property Card</th>
-                                    <th class="text-center">Per Physical Count</th>
+                                    <th width="20%">Description</th>
+                                    <th width="15%">Property No.</th>
+                                    <th width="12%">Serial No.</th>
+                                    <th width="8%">Unit</th>
+                                    <th width="12%">Unit Value</th>
+                                    <th width="10%">Qty (Physical)</th>
+                                    <th width="15%">Location</th>
+                                    <th width="8%">Condition</th>
+                                    <th width="10%">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($inventoryItems as $index => $item)
-                                <tr>
-                                    <td class="text-center">{{ $index + 1 }}</td>
+                                @forelse($inventoryItems as $item)
+                                <tr data-condition="{{ $item->condition }}">
                                     <td>
-                                        <strong>{{ $item->article_description }}</strong>
-                                        @if($item->article && $item->article != $item->article_description)
-                                            <br><small class="text-muted">{{ $item->article }}</small>
-                                        @endif
-                                        @if($item->serial_no)
-                                            <br><small class="text-info">S/N: {{ $item->serial_no }}</small>
-                                        @endif
+                                        <div class="item-description">
+                                            {{ $item->article_description }}
+                                            @if($item->article)
+                                                <br><small class="text-muted">{{ $item->article }}</small>
+                                            @endif
+                                        </div>
                                     </td>
-                                    <td class="text-center">{{ $item->old_property_no }}</td>
-                                    <td class="text-center">
-                                        @if($item->new_property_no)
-                                            <span class="badge badge-success">{{ $item->new_property_no }}</span>
+                                    <td>
+                                        <div class="property-numbers">
+                                            <span class="old-property-no">{{ $item->old_property_no }}</span>
+                                            @if($item->new_property_no)
+                                                <br><small class="text-primary">New: {{ $item->new_property_no }}</small>
+                                            @endif
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="serial-no">{{ $item->serial_no ?? 'N/A' }}</span>
+                                    </td>
+                                    <td>{{ $item->unit ?? 'N/A' }}</td>
+                                    <td>
+                                        <span class="unit-value">₱{{ number_format($item->unit_value, 2) }}</span>
+                                    </td>
+                                    <td>
+                                        @if($item->has_property_card)
+                                            <span class="badge bg-success fs-6">{{ $item->quantity_per_physical_count }}</span>
                                         @else
-                                            <span class="badge badge-warning">To Be Assigned</span>
+                                            <span class="badge bg-warning fs-6">No Property Card</span>
                                         @endif
                                     </td>
-                                    <td class="text-center">{{ $item->unit ?? 'pcs' }}</td>
-                                    <td class="text-right">
-                                        @if($item->unit_value)
-                                            ₱{{ number_format($item->unit_value, 2) }}
-                                        @else
-                                            <span class="text-muted">N/A</span>
-                                        @endif
+                                    <td>
+                                        <span class="location-text">{{ $item->location_whereabouts }}</span>
                                     </td>
-                                    <td class="text-center">{{ $item->quantity_per_property_card ?? 0 }}</td>
-                                    <td class="text-center">
-                                        <input type="number" class="form-control form-control-sm text-center" 
-                                               value="{{ $item->quantity_per_physical_count ?? 0 }}" 
-                                               min="0" style="width: 80px; margin: 0 auto;">
-                                    </td>
-                                    <td>{{ $item->location_whereabouts ?? 'Not Specified' }}</td>
-                                    <td class="text-center">
+                                    <td>
                                         @if($item->condition)
-                                            @switch(strtolower($item->condition))
-                                                @case('good')
-                                                @case('excellent')
-                                                    <span class="badge badge-success">{{ ucfirst($item->condition) }}</span>
-                                                    @break
-                                                @case('fair')
-                                                @case('average')
-                                                    <span class="badge badge-warning">{{ ucfirst($item->condition) }}</span>
-                                                    @break
-                                                @case('poor')
-                                                @case('bad')
-                                                    <span class="badge badge-danger">{{ ucfirst($item->condition) }}</span>
-                                                    @break
-                                                @default
-                                                    <span class="badge badge-info">{{ ucfirst($item->condition) }}</span>
-                                            @endswitch
+                                            <span class="badge bg-{{ $item->condition == 'Good' ? 'success' : ($item->condition == 'Fair' ? 'warning' : 'danger') }}">
+                                                {{ $item->condition }}
+                                            </span>
                                         @else
-                                            <span class="text-muted">Not Set</span>
+                                            <span class="badge bg-secondary">N/A</span>
                                         @endif
                                     </td>
-                                    <td>{{ $item->remarks ?? '-' }}</td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{{ route('inventory-count-form.item-details', [$inventoryForm->id, $item->item_id]) }}" 
+                                               class="btn btn-outline-primary" 
+                                               title="View full item details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            @if(auth()->user()->can('edit', $inventoryForm))
+                                            <button type="button" 
+                                                    class="btn btn-outline-warning edit-item-btn" 
+                                                    data-item-id="{{ $item->item_id }}"
+                                                    title="Edit item">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            @endif
+                                        </div>
+                                    </td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="11" class="text-center text-muted">No inventory items found for this entity.</td>
+                                    <td colspan="9" class="text-center py-4">
+                                        <div class="empty-state">
+                                            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                            <p class="text-muted">No inventory items found.</p>
+                                            @if(auth()->user()->can('edit', $inventoryForm))
+                                            <a href="{{ route('inventory-count-forms.items.create', $inventoryForm->id) }}" 
+                                               class="btn btn-primary">
+                                                <i class="fas fa-plus me-1"></i>Add First Item
+                                            </a>
+                                            @endif
+                                        </div>
+                                    </td>
                                 </tr>
                                 @endforelse
                             </tbody>
@@ -182,118 +245,580 @@
                     <!-- Summary Section -->
                     @if($inventoryItems->count() > 0)
                     <div class="row mt-4">
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 class="card-title mb-0">Inventory Summary</h5>
-                                </div>
-                                <div class="card-body">
-                                    <table class="table table-sm">
-                                        <tr>
-                                            <td><strong>Total Items:</strong></td>
-                                            <td>{{ $inventoryItems->count() }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Items with New Property No.:</strong></td>
-                                            <td>{{ $inventoryItems->whereNotNull('new_property_no')->count() }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Items Pending Assignment:</strong></td>
-                                            <td>{{ $inventoryItems->whereNull('new_property_no')->count() }}</td>
-                                        </tr>
-                                        <tr>
-                                            <td><strong>Total Estimated Value:</strong></td>
-                                            <td>₱{{ number_format($inventoryItems->sum(function($item) { 
-                                                return ($item->unit_value ?? 0) * ($item->quantity_per_property_card ?? 1); 
-                                            }), 2) }}</td>
-                                        </tr>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-md-6">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5 class="card-title mb-0">Condition Distribution</h5>
-                                </div>
-                                <div class="card-body">
-                                    @php
-                                        $conditions = $inventoryItems->groupBy('condition');
-                                    @endphp
-                                    @foreach($conditions as $condition => $items)
-                                        @if($condition)
-                                        <div class="d-flex justify-content-between align-items-center mb-2">
-                                            <span>{{ ucfirst($condition) }}:</span>
-                                            <span class="badge badge-secondary">{{ $items->count() }}</span>
-                                        </div>
-                                        @endif
-                                    @endforeach
-                                    @if($inventoryItems->whereNull('condition')->count() > 0)
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <span>Not Set:</span>
-                                        <span class="badge badge-secondary">{{ $inventoryItems->whereNull('condition')->count() }}</span>
+                        <div class="col-12">
+                            <div class="summary-section">
+                                <h5 class="section-title">Summary</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <table class="table table-sm">
+                                            <tr>
+                                                <td><strong>Total Items:</strong></td>
+                                                <td>{{ $totalItems }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Items with Property Cards:</strong></td>
+                                                <td>{{ $itemsWithPropertyCards }} ({{ $totalItems > 0 ? number_format(($itemsWithPropertyCards / $totalItems) * 100, 1) : 0 }}%)</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Items without Property Cards:</strong></td>
+                                                <td>{{ $itemsWithoutPropertyCards }} ({{ $totalItems > 0 ? number_format(($itemsWithoutPropertyCards / $totalItems) * 100, 1) : 0 }}%)</td>
+                                            </tr>
+                                        </table>
                                     </div>
-                                    @endif
+                                    <div class="col-md-6">
+                                        <table class="table table-sm">
+                                            <tr>
+                                                <td><strong>Good Condition:</strong></td>
+                                                <td>{{ $inventoryItems->where('condition', 'Good')->count() }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Fair Condition:</strong></td>
+                                                <td>{{ $inventoryItems->where('condition', 'Fair')->count() }}</td>
+                                            </tr>
+                                            <tr>
+                                                <td><strong>Poor Condition:</strong></td>
+                                                <td>{{ $inventoryItems->where('condition', 'Poor')->count() }}</td>
+                                            </tr>
+                                        </table>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     @endif
-
-                    <!-- Signature Section -->
-                    <div class="row mt-5">
-                        <div class="col-md-6">
-                            <div class="text-center">
-                                <hr style="width: 200px; border: 1px solid #000;">
-                                <p><strong>{{ $inventoryForm->prepared_by_name ?? 'Name' }}</strong></p>
-                                <p>{{ $inventoryForm->prepared_by_position ?? 'Position' }}</p>
-                                <p><small>Prepared By</small></p>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="text-center">
-                                <hr style="width: 200px; border: 1px solid #000;">
-                                <p><strong>{{ $inventoryForm->reviewed_by_name ?? 'Name' }}</strong></p>
-                                <p>{{ $inventoryForm->reviewed_by_position ?? 'Position' }}</p>
-                                <p><small>Reviewed By</small></p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+@endsection
 
+@push('scripts')
+<script>
+$(document).ready(function() {
+    // Initialize DataTable with enhanced options
+    var table = $('#inventoryTable').DataTable({
+        responsive: true,
+        pageLength: 25,
+        order: [[0, 'asc']],
+        columnDefs: [
+            { orderable: false, targets: -1 }, // Disable sorting on Actions column
+            { width: "20%", targets: 0 },
+            { width: "15%", targets: 1 },
+            { width: "12%", targets: 2 },
+            { width: "8%", targets: 3 },
+            { width: "12%", targets: 4 },
+            { width: "10%", targets: 5 },
+            { width: "15%", targets: 6 },
+            { width: "8%", targets: 7 },
+            { width: "10%", targets: 8 }
+        ],
+        language: {
+            search: "Search items:",
+            lengthMenu: "Show _MENU_ items per page",
+            info: "Showing _START_ to _END_ of _TOTAL_ items",
+            infoEmpty: "No items available",
+            infoFiltered: "(filtered from _MAX_ total items)"
+        },
+        dom: 'Bfrtip',
+        buttons: [
+            {
+                extend: 'copy',
+                className: 'btn btn-outline-secondary btn-sm'
+            },
+            {
+                extend: 'csv',
+                className: 'btn btn-outline-success btn-sm'
+            },
+            {
+                extend: 'excel',
+                className: 'btn btn-outline-success btn-sm'
+            },
+            {
+                extend: 'pdf',
+                className: 'btn btn-outline-danger btn-sm'
+            },
+            {
+                extend: 'print',
+                className: 'btn btn-outline-primary btn-sm'
+            }
+        ]
+    });
+
+    // Condition filter functionality
+    $('#conditionFilter').on('change', function() {
+        var selectedCondition = $(this).val();
+        if (selectedCondition === '') {
+            table.column(7).search('').draw();
+        } else {
+            table.column(7).search(selectedCondition).draw();
+        }
+    });
+
+    // Edit item functionality (if user has permission)
+    $('.edit-item-btn').on('click', function() {
+        const itemId = $(this).data('item-id');
+        const inventoryFormId = {{ $inventoryForm->id }};
+        window.location.href = `/inventory-count-form/${inventoryFormId}/item/${itemId}/edit`;
+    });
+
+    // Export functions
+    window.exportToExcel = function() {
+        table.button('.buttons-excel').trigger();
+    };
+
+    window.exportToPDF = function() {
+        table.button('.buttons-pdf').trigger();
+    };
+
+    // Auto-refresh functionality (optional)
+    @if(config('app.env') !== 'production')
+    setInterval(function() {
+        // Only refresh if there are no open modals or active operations
+        if (!$('.modal.show').length && !$('.loading').length) {
+            // You can implement auto-refresh logic here if needed
+            // location.reload();
+        }
+    }, 300000); // 5 minutes
+    @endif
+
+    // Keyboard shortcuts
+    $(document).keydown(function(e) {
+        // Ctrl+P for print
+        if (e.ctrlKey && e.keyCode === 80) {
+            e.preventDefault();
+            window.print();
+        }
+    });
+
+    // Tooltip initialization
+    $('[title]').tooltip();
+
+    // Initialize popovers for additional info
+    $('[data-bs-toggle="popover"]').popover();
+});
+
+// Global notification function
+function showNotification(message, type = 'info') {
+    const alertClass = `alert-${type}`;
+    const iconClass = type === 'success' ? 'fa-check-circle' : 
+                     type === 'error' ? 'fa-exclamation-triangle' : 
+                     type === 'warning' ? 'fa-exclamation-circle' : 'fa-info-circle';
+    
+    const notification = $(`
+        <div class="alert ${alertClass} alert-dismissible fade show position-fixed" 
+             style="top: 20px; right: 20px; z-index: 9999; min-width: 300px;" role="alert">
+            <i class="fas ${iconClass} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    `);
+    
+    $('body').append(notification);
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        notification.alert('close');
+    }, 5000);
+}
+
+// Print specific sections
+function printSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    if (section) {
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>Print Section</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        table { width: 100%; border-collapse: collapse; }
+                        th, td { padding: 8px; border: 1px solid #ddd; text-align: left; }
+                        th { background-color: #f2f2f2; }
+                    </style>
+                </head>
+                <body>
+                    ${section.outerHTML}
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
+    }
+}
+</script>
+@endpush
+
+@push('styles')
 <style>
+/* Enhanced Info Box Styling */
+.info-box {
+    box-shadow: 0 0 1px rgba(0,0,0,.125), 0 1px 3px rgba(0,0,0,.2);
+    border-radius: .25rem;
+    background-color: #fff;
+    display: flex;
+    margin-bottom: 1rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.info-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,.15);
+}
+
+.info-box-icon {
+    border-radius: .25rem 0 0 .25rem;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    width: 90px;
+}
+
+.info-box-content {
+    padding: .75rem .75rem .75rem 0;
+    margin-left: 1rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.info-box-text {
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: .8rem;
+    color: #6c757d;
+}
+
+.info-box-number {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+/* Table Enhancements */
+.table th {
+    font-weight: 600;
+    font-size: 0.875rem;
+    background-color: #343a40 !important;
+    color: white !important;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.item-description {
+    line-height: 1.4;
+}
+
+.property-numbers {
+    line-height: 1.4;
+}
+
+.old-property-no {
+    font-weight: 500;
+    font-family: 'Courier New', monospace;
+}
+
+.serial-no {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9em;
+    background-color: #f8f9fa;
+    padding: 2px 4px;
+    border-radius: 3px;
+}
+
+.unit-value {
+    font-weight: 500;
+    color: #28a745;
+    font-family: 'Courier New', monospace;
+}
+
+.location-text {
+    font-size: 0.9em;
+}
+
+/* Info Section Styling */
+.info-section {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+    margin-bottom: 20px;
+    border: 1px solid #e9ecef;
+}
+
+.section-title {
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 15px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #007bff;
+}
+
+/* Summary Section */
+.summary-section {
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+    border: 1px solid #e9ecef;
+}
+
+/* Filter Section */
+.filter-section {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+}
+
+.export-options {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+}
+
+/* Empty State */
+.empty-state {
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.empty-state i {
+    opacity: 0.5;
+}
+
+/* Button Group Enhancements */
+.btn-group-sm > .btn {
+    padding: .25rem .5rem;
+    font-size: .775rem;
+    border-radius: .2rem;
+}
+
+/* Badge Enhancements */
+.badge {
+    font-size: 0.75em;
+    font-weight: 500;
+}
+
+.badge.fs-6 {
+    font-size: 0.875rem !important;
+}
+
+/* DataTable Customizations */
+.dataTables_wrapper .dataTables_filter {
+    float: right;
+    margin-bottom: 10px;
+}
+
+.dataTables_wrapper .dataTables_length {
+    float: left;
+    margin-bottom: 10px;
+}
+
+.dataTables_wrapper .dataTables_info {
+    padding-top: 8px;
+}
+
+.dataTables_wrapper .dataTables_paginate {
+    float: right;
+    padding-top: 8px;
+}
+
+/* Custom scrollbar for table */
+.table-responsive::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-responsive::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.table-responsive::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Print Styles */
 @media print {
-    .btn-group, .card-header .btn-group {
+    .no-print,
+    .card-tools,
+    .btn,
+    .dataTables_wrapper .dataTables_filter,
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate,
+    .filter-section,
+    .export-options {
         display: none !important;
     }
-    
+
+    .card {
+        border: none;
+        box-shadow: none;
+    }
+
     .table {
-        font-size: 10px;
+        font-size: 12px;
+    }
+
+    .info-box {
+        break-inside: avoid;
+        margin-bottom: 10px;
+    }
+
+    body {
+        font-size: 12px;
+        line-height: 1.3;
+    }
+
+    .card-header {
+        background: none !important;
+        border-bottom: 2px solid #000;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+
+    .section-title {
+        border-bottom: 1px solid #000;
+    }
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .info-box {
+        flex-direction: column;
+        text-align: center;
     }
     
-    .card {
-        border: none !important;
-        box-shadow: none !important;
+    .info-box-icon {
+        width: 100%;
+        border-radius: .25rem .25rem 0 0;
+        padding: 20px;
+    }
+    
+    .info-box-content {
+        margin-left: 0;
+        padding: 15px;
+    }
+
+    .card-tools {
+        margin-top: 10px;
+    }
+
+    .card-tools .btn {
+        margin-bottom: 5px;
+    }
+
+    .filter-section,
+    .export-options {
+        margin-bottom: 15px;
+    }
+
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .container-fluid {
+        padding: 10px;
+    }
+
+    .info-section,
+    .summary-section {
+        padding: 15px;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+    }
+
+    .table th,
+    .table td {
+        padding: 6px 8px;
+        font-size: 0.8rem;
+    }
+
+    .btn-group-sm > .btn {
+        padding: .2rem .4rem;
+        font-size: .7rem;
+    }
+}
+
+/* Loading States */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+    position: relative;
+}
+
+.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 20px;
+    height: 20px;
+    margin: -10px 0 0 -10px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #007bff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Focus styles for better accessibility */
+.btn:focus,
+.form-control:focus,
+.form-select:focus {
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    outline: 0;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .table th {
+        background-color: #000 !important;
+        color: #fff !important;
+    }
+    
+    .badge {
+        border: 2px solid currentColor;
+    }
+    
+    .info-box {
+        border: 2px solid #000;
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .info-box,
+    .table-hover tbody tr {
+        transition: none;
+    }
+    
+    .loading::after {
+        animation: none;
     }
 }
 </style>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Add functionality for physical count inputs
-    const physicalCountInputs = document.querySelectorAll('input[type="number"]');
-    
-    physicalCountInputs.forEach(input => {
-        input.addEventListener('change', function() {
-            // You can add AJAX functionality here to save changes
-            console.log('Physical count updated:', this.value);
-        });
-    });
-});
-</script>
-@endsection
+@endpush
