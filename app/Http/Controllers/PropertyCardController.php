@@ -388,28 +388,8 @@ class PropertyCardController extends Controller
             ->with('success', 'Property card created successfully.');
     }
 
-    /**
-     * Display the specified property card group.
-     */
-    public function show($descriptionId)
-    {
-        $propertyCards = PropertyCard::getPropertyCardsByDescriptionId($descriptionId);
-        
-        if ($propertyCards->isEmpty()) {
-            return redirect()->route('property_cards.index')
-                ->with('error', 'Property cards not found.');
-        }
 
-        $groupedData = PropertyCard::getGroupedPropertyCards()
-            ->where('description_id', $descriptionId)
-            ->first();
-
-        return view('property_cards.show', compact('propertyCards', 'groupedData'));
-    }
-
-    /**
-     * Show the form for editing the specified property card.
-     */
+ 
     public function edit($id)
     {
         $property_cards = PropertyCard::findOrFail($id);
