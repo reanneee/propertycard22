@@ -72,12 +72,32 @@
 
         .header .user-section {
             margin-left: auto;
+            position: relative;
+        }
+
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .user-trigger {
             display: flex;
             align-items: center;
             color: white;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 12px;
+            transition: all 0.2s ease;
+            border: none;
+            background: transparent;
         }
 
-        .header .user-avatar {
+        .user-trigger:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .user-avatar {
             width: 36px;
             height: 36px;
             background: rgba(255, 255, 255, 0.2);
@@ -86,6 +106,108 @@
             align-items: center;
             justify-content: center;
             margin-right: 12px;
+        }
+
+        .user-info {
+            text-align: left;
+        }
+
+        .user-welcome {
+            font-size: 0.9rem;
+            margin-bottom: 2px;
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            opacity: 0.8;
+        }
+
+        .dropdown-arrow {
+            margin-left: 8px;
+            font-size: 0.8rem;
+            transition: transform 0.2s ease;
+        }
+
+        .user-dropdown.active .dropdown-arrow {
+            transform: rotate(180deg);
+        }
+
+        .dropdown-menu-custom {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            min-width: 200px;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.3s ease;
+            z-index: 1001;
+            margin-top: 8px;
+        }
+
+        .user-dropdown.active .dropdown-menu-custom {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-header {
+            padding: 1rem 1.25rem 0.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 0.5rem;
+        }
+
+        .dropdown-user-name {
+            font-weight: 600;
+            color: #1e293b;
+            font-size: 0.95rem;
+        }
+
+        .dropdown-user-role {
+            font-size: 0.8rem;
+            color: #64748b;
+            margin-top: 2px;
+        }
+
+        .dropdown-item-custom {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.25rem;
+            color: #475569;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            font-size: 0.9rem;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .dropdown-item-custom:hover {
+            background: #f1f5f9;
+            color: #1e293b;
+        }
+
+        .dropdown-item-custom i {
+            width: 18px;
+            margin-right: 10px;
+            font-size: 0.9rem;
+        }
+
+        .dropdown-item-custom.logout {
+            color: #dc2626;
+            border-top: 1px solid #e2e8f0;
+            margin-top: 0.5rem;
+        }
+
+        .dropdown-item-custom.logout:hover {
+            background: #fef2f2;
+            color: #b91c1c;
         }
 
         /* Sidebar */
@@ -103,6 +225,7 @@
 
         .sidebar-nav {
             padding: 2rem 0;
+            height: 100%;
         }
 
         .nav-section {
@@ -150,38 +273,6 @@
             width: 20px;
             margin-right: 12px;
             font-size: 1.1rem;
-        }
-
-        .logout-section {
-            position: absolute;
-            bottom: 2rem;
-            left: 0;
-            right: 0;
-            padding: 0 1.5rem;
-        }
-
-        .logout-btn {
-            width: 100%;
-            padding: 0.875rem;
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s ease;
-            cursor: pointer;
-        }
-
-        .logout-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 8px 25px rgba(239, 68, 68, 0.3);
-        }
-
-        .logout-btn i {
-            margin-right: 8px;
         }
 
         /* Main Content */
@@ -315,6 +406,24 @@
         .stat-card:nth-child(2) { animation-delay: 0.2s; }
         .stat-card:nth-child(3) { animation-delay: 0.3s; }
         .stat-card:nth-child(4) { animation-delay: 0.4s; }
+
+        /* Overlay for dropdown */
+        .dropdown-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 999;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
     </style>
 </head>
 <body>
@@ -330,15 +439,48 @@
             </div>
         </div>
         <div class="user-section">
-            <div class="user-avatar">
-                <i class="fas fa-user"></i>
-            </div>
-            <div>
-                <div style="font-size: 0.9rem;">Welcome back</div>
-                <div style="font-size: 0.75rem; opacity: 0.8;">Administrator</div>
+            <div class="user-dropdown" id="userDropdown">
+                <button class="user-trigger" type="button">
+                    <div class="user-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-info">
+                        <div class="user-welcome">Welcome back</div>
+                        <div class="user-role">Administrator</div>
+                    </div>
+                    <i class="fas fa-chevron-down dropdown-arrow"></i>
+                </button>
+                <div class="dropdown-menu-custom">
+                    <div class="dropdown-header">
+                        <div class="dropdown-user-name">Administrator</div>
+                        <div class="dropdown-user-role">System Administrator</div>
+                    </div>
+                    <a href="#" class="dropdown-item-custom">
+                        <i class="fas fa-user-cog"></i>
+                        Profile Settings
+                    </a>
+                    <a href="#" class="dropdown-item-custom">
+                        <i class="fas fa-bell"></i>
+                        Notifications
+                    </a>
+                    <a href="#" class="dropdown-item-custom">
+                        <i class="fas fa-cog"></i>
+                        Preferences
+                    </a>
+                    <form action="{{ route('logout') }}" method="POST" style="margin: 0;">
+                        @csrf
+                        <button type="submit" class="dropdown-item-custom logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                            Logout
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
     </header>
+
+    <!-- Dropdown Overlay -->
+    <div class="dropdown-overlay" id="dropdownOverlay"></div>
 
     <!-- Sidebar -->
     <nav class="sidebar">
@@ -403,16 +545,6 @@
                 </div>
             </div>
         </div>
-
-        <div class="logout-section">
-            <form action="{{ route('logout') }}" method="POST">
-                @csrf
-                <button class="logout-btn" type="submit">
-                    <i class="fas fa-sign-out-alt"></i>
-                    Logout
-                </button>
-            </form>
-        </div>
     </nav>
 
     <!-- Main Content -->
@@ -428,8 +560,38 @@
     @yield('scripts')
     
     <script>
-        // Add smooth scrolling and hover effects
+        // User dropdown functionality
         document.addEventListener('DOMContentLoaded', function() {
+            const userDropdown = document.getElementById('userDropdown');
+            const dropdownOverlay = document.getElementById('dropdownOverlay');
+            const userTrigger = userDropdown.querySelector('.user-trigger');
+
+            // Toggle dropdown
+            userTrigger.addEventListener('click', function(e) {
+                e.stopPropagation();
+                userDropdown.classList.toggle('active');
+                dropdownOverlay.classList.toggle('active');
+            });
+
+            // Close dropdown when clicking overlay
+            dropdownOverlay.addEventListener('click', function() {
+                userDropdown.classList.remove('active');
+                dropdownOverlay.classList.remove('active');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!userDropdown.contains(e.target)) {
+                    userDropdown.classList.remove('active');
+                    dropdownOverlay.classList.remove('active');
+                }
+            });
+
+            // Prevent dropdown from closing when clicking inside
+            userDropdown.addEventListener('click', function(e) {
+                e.stopPropagation();
+            });
+
             // Animate stats on load
             const statNumbers = document.querySelectorAll('.stat-number');
             statNumbers.forEach(stat => {
