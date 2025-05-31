@@ -34,6 +34,7 @@ class InventoryCountForm extends Model
     {
         return $this->belongsTo(Entity::class, 'entity_id', 'entity_id');
     }
+    
 
     // Relationship with property cards (inventory items)
     public function propertyCards()

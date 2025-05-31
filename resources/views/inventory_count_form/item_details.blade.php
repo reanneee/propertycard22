@@ -28,6 +28,7 @@
                         <i class="fas fa-clipboard-list me-2"></i>Property Card Details
                     </h3>
                     <div class="card-tools">
+                        
                         <a href="{{ route('inventory-count-form.show', request()->route('inventoryFormId')) }}" 
                            class="btn btn-secondary btn-sm">
                             <i class="fas fa-arrow-left me-1"></i>Back to Form

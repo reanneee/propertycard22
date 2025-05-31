@@ -97,7 +97,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/inventory', [InventoryCountFormController::class, 'store'])->name('inventory.store');
     Route::get('/inventory', [InventoryCountFormController::class, 'index'])->name('inventory.index');
     Route::get('/inventory/{id}', [InventoryCountFormController::class, 'show'])->name('inventory.show');
-    Route::get('/inventory/{id}', [InventoryCountFormController::class, 'show'])->name('inventory.show');
+  //  Route::get('/inventory/{id}', [InventoryCountFormController::class, 'show'])->name('inventory.show');
     Route::get('inventory/{id}/edit', [InventoryCountFormController::class, 'edit'])->name('inventory.edit');
     Route::get('/inventory/{id}/report', [InventoryCountFormController::class, 'generateReport'])->name('inventory.report');
     //
@@ -112,18 +112,19 @@ Route::middleware('auth')->group(function () {
 
 
     //
-    Route::resource('inventory-count-form', PropertyCardController::class);
+    Route::resource('inventory-count-form', InventoryCountFormController::class);
     Route::get(
         '/inventory-count-form/{inventoryFormId}/item/{itemId}/details',
-        [PropertyCardController::class, 'showItemDetails']
+        [InventoryCountFormController::class, 'showItemDetails']
     )
         ->name('inventory-count-form.item-details');
 
-    Route::get('/inventory-count-form/{inventoryFormId}/item/{itemId}/edit', [PropertyCardController::class, 'editItemDetails'])
+    Route::get('/inventory-count-form/{inventoryFormId}/item/{itemId}/edit', [InventoryCountFormController::class, 'editItemDetails'])
         ->name('inventory-count-form.edit-item-details');
 
-    Route::put('/inventory-count-form/{inventoryFormId}/item/{itemId}', [PropertyCardController::class, 'updateItemDetails'])
+    Route::put('/inventory-count-form/{inventoryFormId}/item/{itemId}', [InventoryCountFormController::class, 'updateItemDetails'])
         ->name('inventory-count-form.update-item-details');
+
+
+    Route::get('/property-cards/by-par-no', [PropertyCardController::class, 'indexByParNo']);
 });
-
-

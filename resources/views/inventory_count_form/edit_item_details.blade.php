@@ -243,12 +243,6 @@
                                         <option value="Issue" {{ old('issue_transfer_disposal', $itemDetails->issue_transfer_disposal) == 'Issue' ? 'selected' : '' }}>Issue</option>
                                         <option value="Transferred" {{ old('issue_transfer_disposal', $itemDetails->issue_transfer_disposal) == 'Transferred' ? 'selected' : '' }}>Transferred</option>
                                         <option value="Disposed" {{ old('issue_transfer_disposal', $itemDetails->issue_transfer_disposal) == 'Disposed' ? 'selected' : '' }}>Disposed</option>
-                                        <option value="Returned" {{ old('issue_transfer_disposal', $itemDetails->issue_transfer_disposal) == 'Returned' ? 'selected' : '' }}>Returned</option>
-                                        <option value="Lost" {{ old('issue_transfer_disposal', $itemDetails->issue_transfer_disposal) == 'Lost' ? 'selected' : '' }}>Lost</option>
-                                        <option value="Stolen" {{ old('issue_transfer_disposal', $itemDetails->issue_transfer_disposal) == 'Stolen' ? 'selected' : '' }}>Stolen</option>
-                                        <option value="Damaged" {{ old('issue_transfer_disposal', $itemDetails->issue_transfer_disposal) == 'Damaged' ? 'selected' : '' }}>Damaged</option>
-                                        <option value="Sold" {{ old('issue_transfer_disposal', $itemDetails->issue_transfer_disposal) == 'Sold' ? 'selected' : '' }}>Sold</option>
-                                        <option value="Donated" {{ old('issue_transfer_disposal', $itemDetails->issue_transfer_disposal) == 'Donated' ? 'selected' : '' }}>Donated</option>
                                     </select>
                                 </div>
                             </div>
