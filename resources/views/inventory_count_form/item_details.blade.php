@@ -28,18 +28,19 @@
                         <i class="fas fa-clipboard-list me-2"></i>Property Card Details
                     </h3>
                     <div class="card-tools">
-                        
-                        <a href="{{ route('inventory-count-form.show', request()->route('inventoryFormId')) }}" 
-                           class="btn btn-secondary btn-sm">
+
+                        <a href="{{ route('inventory-count-form.show', request()->route('inventoryFormId')) }}"
+                            class="btn btn-secondary btn-sm">
                             <i class="fas fa-arrow-left me-1"></i>Back to Form
                         </a>
-                        <a href="{{ route('inventory-count-form.edit-item-details', ['inventoryFormId' => request()->route('inventoryFormId'), 'itemId' => request()->route('itemId')]) }}" 
-                           class="btn btn-warning btn-sm">
+                        <a href="{{ route('inventory-count-form.edit-item-details', ['inventoryFormId' => request()->route('inventoryFormId'), 'itemId' => request()->route('itemId')]) }}"
+                            class="btn btn-warning btn-sm">
                             <i class="fas fa-edit me-1"></i>Edit
                         </a>
-                        <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">
+                        <a href="{{ route('inventory.print', request()->route('itemId')) }}"
+                            class="btn btn-primary btn-sm">
                             <i class="fas fa-print me-1"></i>Print
-                        </button>
+                        </a>
                     </div>
                 </div>
                 <div class="card-body p-0">
@@ -48,7 +49,7 @@
                         <table class="table table-bordered mb-0">
                             <tr>
                                 <td class="header-field" width="50%">
-                                    <strong>Entity Name:</strong> 
+                                    <strong>Entity Name:</strong>
                                     <span class="underline-field">{{ $itemDetails->entity_name ?? '_________________________' }}</span>
                                 </td>
                                 <!-- <td class="header-field" width="50%">
@@ -71,7 +72,7 @@
                                     <strong>Property Number:</strong><br>
                                     <span class="field-content property-no">{{ $itemDetails->property_no ?? 'N/A' }}</span>
                                     @if($itemDetails->new_property_no)
-                                        <br><small class="text-primary">New: {{ $itemDetails->new_property_no }}</small>
+                                    <br><small class="text-primary">New: {{ $itemDetails->new_property_no }}</small>
                                     @endif
                                 </td>
                             </tr>
@@ -120,11 +121,11 @@
                                 </tr>
 
                                 <!-- Transfer/Issue Record (if applicable) -->
-                               
+
 
                                 <!-- Empty rows for additional entries -->
                                 @for($i = 0; $i < 5; $i++)
-                                <tr class="empty-row">
+                                    <tr class="empty-row">
                                     <td>&nbsp;</td>
                                     <td>&nbsp;</td>
                                     <td>&nbsp;</td>
@@ -133,8 +134,8 @@
                                     <td>&nbsp;</td>
                                     <td>&nbsp;</td>
                                     <td>&nbsp;</td>
-                                </tr>
-                                @endfor
+                                    </tr>
+                                    @endfor
                             </tbody>
                         </table>
                     </div>
@@ -149,15 +150,15 @@
                                 <td width="25%">
                                     <strong>Condition:</strong><br>
                                     @if($itemDetails->condition)
-                                        <span class="badge bg-{{ $itemDetails->condition == 'Good' ? 'success' : ($itemDetails->condition == 'Fair' ? 'warning' : 'danger') }}">
-                                            {{ $itemDetails->condition }}
-                                        </span>
+                                    <span class="badge bg-{{ $itemDetails->condition == 'Good' ? 'success' : ($itemDetails->condition == 'Fair' ? 'warning' : 'danger') }}">
+                                        {{ $itemDetails->condition }}
+                                    </span>
                                     @else
-                                        N/A
+                                    N/A
                                     @endif
                                 </td>
                             </tr>
-                           
+
                         </table>
                     </div>
                 </div>
@@ -169,167 +170,168 @@
 
 @push('styles')
 <style>
-/* Property Card Styling */
-.property-card-header .table,
-.property-main-info .table,
-.transaction-table .table,
-.additional-info .table {
-    margin-bottom: 0;
-    border-collapse: collapse;
-}
-
-.property-card-header .table td,
-.property-main-info .table td,
-.additional-info .table td {
-    padding: 12px 15px;
-    vertical-align: top;
-}
-
-.header-field,
-.main-field {
-    background-color: #f8f9fa;
-    font-size: 0.95rem;
-}
-
-.underline-field {
-    border-bottom: 1px solid #000;
-    display: inline-block;
-    min-width: 200px;
-    margin-left: 10px;
-}
-
-.field-content {
-    display: block;
-    margin-top: 5px;
-    font-weight: normal;
-    min-height: 20px;
-}
-
-.property-no {
-    font-family: 'Courier New', monospace;
-    font-weight: 500;
-    font-size: 1.1em;
-}
-
-/* Transaction Table Styling */
-.transaction-table .table th {
-    background-color: #343a40;
-    color: white;
-    font-size: 0.85rem;
-    padding: 8px 6px;
-    text-align: center;
-    vertical-align: middle;
-    border: 1px solid #000;
-}
-
-.transaction-table .table td {
-    padding: 8px 6px;
-    font-size: 0.85rem;
-    border: 1px solid #000;
-    vertical-align: middle;
-}
-
-.amount-cell {
-    font-weight: 600;
-    color: #28a745;
-}
-
-.empty-row td {
-    height: 35px;
-    border: 1px solid #000;
-}
-
-/* Additional Info Styling */
-.additional-info .table td {
-    padding: 10px 12px;
-    font-size: 0.9rem;
-    vertical-align: top;
-}
-
-/* Print Styles */
-@media print {
-    .card-header,
-    .breadcrumb {
-        display: none !important;
+    /* Property Card Styling */
+    .property-card-header .table,
+    .property-main-info .table,
+    .transaction-table .table,
+    .additional-info .table {
+        margin-bottom: 0;
+        border-collapse: collapse;
     }
-    
-    .table,
-    .table th,
-    .table td {
-        border: 1px solid #000 !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
+
+    .property-card-header .table td,
+    .property-main-info .table td,
+    .additional-info .table td {
+        padding: 12px 15px;
+        vertical-align: top;
     }
-    
-    .table-dark th {
-        background-color: #343a40 !important;
-        color: white !important;
-    }
-    
+
     .header-field,
     .main-field {
-        background-color: #f8f9fa !important;
+        background-color: #f8f9fa;
+        font-size: 0.95rem;
     }
-    
+
     .underline-field {
-        border-bottom: 1px solid #000 !important;
+        border-bottom: 1px solid #000;
+        display: inline-block;
+        min-width: 200px;
+        margin-left: 10px;
     }
-    
-    .card {
-        box-shadow: none;
-        border: none;
+
+    .field-content {
+        display: block;
+        margin-top: 5px;
+        font-weight: normal;
+        min-height: 20px;
     }
-    
-    .card-body {
-        padding: 0 !important;
+
+    .property-no {
+        font-family: 'Courier New', monospace;
+        font-weight: 500;
+        font-size: 1.1em;
     }
-    
-    /* Ensure table fits on page */
-    .transaction-table {
-        font-size: 0.8rem;
+
+    /* Transaction Table Styling */
+    .transaction-table .table th {
+        background-color: #343a40;
+        color: white;
+        font-size: 0.85rem;
+        padding: 8px 6px;
+        text-align: center;
+        vertical-align: middle;
+        border: 1px solid #000;
     }
-    
-    .transaction-table .table th,
+
     .transaction-table .table td {
-        padding: 6px 4px !important;
-        font-size: 0.75rem !important;
+        padding: 8px 6px;
+        font-size: 0.85rem;
+        border: 1px solid #000;
+        vertical-align: middle;
     }
-}
 
-/* Mobile Responsive */
-@media (max-width: 768px) {
-    .transaction-table {
-        font-size: 0.75rem;
+    .amount-cell {
+        font-weight: 600;
+        color: #28a745;
     }
-    
-    .transaction-table .table th,
-    .transaction-table .table td {
-        padding: 6px 4px;
-        font-size: 0.75rem;
-    }
-    
-    .underline-field {
-        min-width: 150px;
-    }
-    
-    .card-tools .btn {
-        margin-bottom: 5px;
-    }
-    
-    .card-tools {
-        flex-direction: column;
-        align-items: stretch;
-    }
-}
 
-/* Table borders for official look */
-.table-bordered {
-    border: 2px solid #000;
-}
+    .empty-row td {
+        height: 35px;
+        border: 1px solid #000;
+    }
 
-.table-bordered th,
-.table-bordered td {
-    border: 1px solid #000;
-}
+    /* Additional Info Styling */
+    .additional-info .table td {
+        padding: 10px 12px;
+        font-size: 0.9rem;
+        vertical-align: top;
+    }
+
+    /* Print Styles */
+    @media print {
+
+        .card-header,
+        .breadcrumb {
+            display: none !important;
+        }
+
+        .table,
+        .table th,
+        .table td {
+            border: 1px solid #000 !important;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        .table-dark th {
+            background-color: #343a40 !important;
+            color: white !important;
+        }
+
+        .header-field,
+        .main-field {
+            background-color: #f8f9fa !important;
+        }
+
+        .underline-field {
+            border-bottom: 1px solid #000 !important;
+        }
+
+        .card {
+            box-shadow: none;
+            border: none;
+        }
+
+        .card-body {
+            padding: 0 !important;
+        }
+
+        /* Ensure table fits on page */
+        .transaction-table {
+            font-size: 0.8rem;
+        }
+
+        .transaction-table .table th,
+        .transaction-table .table td {
+            padding: 6px 4px !important;
+            font-size: 0.75rem !important;
+        }
+    }
+
+    /* Mobile Responsive */
+    @media (max-width: 768px) {
+        .transaction-table {
+            font-size: 0.75rem;
+        }
+
+        .transaction-table .table th,
+        .transaction-table .table td {
+            padding: 6px 4px;
+            font-size: 0.75rem;
+        }
+
+        .underline-field {
+            min-width: 150px;
+        }
+
+        .card-tools .btn {
+            margin-bottom: 5px;
+        }
+
+        .card-tools {
+            flex-direction: column;
+            align-items: stretch;
+        }
+    }
+
+    /* Table borders for official look */
+    .table-bordered {
+        border: 2px solid #000;
+    }
+
+    .table-bordered th,
+    .table-bordered td {
+        border: 1px solid #000;
+    }
 </style>
 @endpush

@@ -413,18 +413,7 @@ function loadVacantEquipment(formId) {
     });
 }
 
-// Export functions
-// function exportData() {
-//     window.location.href = 
-// }
 
-// function exportVacantEquipment() {
-//     // Get the currently displayed form ID from the modal
-//     var formId = $('.view-vacant-btn:last').data('form-id');
-//     window.location.href = `/inventory-count-form/${formId}/vacant-equipment/export`;
-// }
-
-// Notification function
 function showNotification(message, type = 'info') {
     const alertClass = `alert-${type}`;
     const iconClass = type === 'success' ? 'fa-check-circle' : 
