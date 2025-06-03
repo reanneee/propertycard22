@@ -12,7 +12,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
             --psu-primary: #1e3a8a;
@@ -455,18 +455,7 @@
                         <div class="dropdown-user-name">Administrator</div>
                         <div class="dropdown-user-role">System Administrator</div>
                     </div>
-                    <a href="#" class="dropdown-item-custom">
-                        <i class="fas fa-user-cog"></i>
-                        Profile Settings
-                    </a>
-                    <a href="#" class="dropdown-item-custom">
-                        <i class="fas fa-bell"></i>
-                        Notifications
-                    </a>
-                    <a href="#" class="dropdown-item-custom">
-                        <i class="fas fa-cog"></i>
-                        Preferences
-                    </a>
+                  
                     <form action="{{ route('logout') }}" method="POST" style="margin: 0;">
                         @csrf
                         <button type="submit" class="dropdown-item-custom logout">
@@ -537,12 +526,7 @@
                         Property Cards
                     </a>
                 </div>
-                <div class="nav-item">
-                    <a class="nav-link {{ request()->routeIs('equipment-list.*') ? 'active' : '' }}" href="{{ route('equipment-list.index') }}">
-                        <i class="fas fa-list-alt"></i>
-                        Equipment List
-                    </a>
-                </div>
+           
             </div>
         </div>
     </nav>

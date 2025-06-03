@@ -127,4 +127,11 @@ Route::middleware('auth')->group(function () {
 
 
     Route::get('/property-cards/by-par-no', [PropertyCardController::class, 'indexByParNo']);
+
+    Route::get('/inventory-count-form/{inventoryFormId}/item/{itemId}/pdf', [InventoryCountFormController::class, 'generatePDF'])
+    ->name('inventory-count-form.generate-pdf');
+
+// Alternative route if you want it simpler
+Route::get('/property-card/{itemId}/pdf', [InventoryCountFormController::class, 'generatePDF'])
+    ->name('property-card.pdf');
 });

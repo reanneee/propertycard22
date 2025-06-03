@@ -11,9 +11,7 @@
                     <p class="text-muted mb-0">Manage and track all inventory forms and vacant equipment</p>
                 </div>
                 <div>
-                    <a href="{{ route('inventory-count-form.create') }}" class="btn btn-primary">
-                        <i class="fas fa-plus me-2"></i>Create New Form
-                    </a>
+                 
                 </div>
             </div>
 
@@ -81,47 +79,7 @@
                 </div>
             </div>
 
-            <!-- Filters and Search -->
-            <div class="card mb-4">
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <label for="entityFilter" class="form-label">Filter by Entity</label>
-                            <select id="entityFilter" class="form-select">
-                                <option value="">All Entities</option>
-                                @foreach($entities as $entity)
-                                    <option value="{{ $entity->entity_id }}">{{ $entity->entity_name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="statusFilter" class="form-label">Filter by Status</label>
-                            <select id="statusFilter" class="form-select">
-                                <option value="">All Status</option>
-                                <option value="draft">Draft</option>
-                                <option value="pending">Pending</option>
-                                <option value="completed">Completed</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3">
-                            <label for="vacantFilter" class="form-label">Vacant Equipment</label>
-                            <select id="vacantFilter" class="form-select">
-                                <option value="">All Equipment</option>
-                                <option value="with_vacant">Forms with Vacant Equipment</option>
-                                <option value="no_vacant">Forms without Vacant Equipment</option>
-                            </select>
-                        </div>
-                        <div class="col-md-3 d-flex align-items-end">
-                            <button type="button" class="btn btn-outline-secondary me-2" onclick="resetFilters()">
-                                <i class="fas fa-undo me-1"></i>Reset
-                            </button>
-                            <button type="button" class="btn btn-primary" onclick="exportData()">
-                                <i class="fas fa-download me-1"></i>Export
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        
 
             <!-- Main Data Table -->
             <div class="card">

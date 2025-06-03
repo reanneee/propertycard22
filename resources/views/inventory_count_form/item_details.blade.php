@@ -28,7 +28,6 @@
                         <i class="fas fa-clipboard-list me-2"></i>Property Card Details
                     </h3>
                     <div class="card-tools">
-
                         <a href="{{ route('inventory-count-form.show', request()->route('inventoryFormId')) }}"
                             class="btn btn-secondary btn-sm">
                             <i class="fas fa-arrow-left me-1"></i>Back to Form
@@ -37,9 +36,11 @@
                             class="btn btn-warning btn-sm">
                             <i class="fas fa-edit me-1"></i>Edit
                         </a>
-                        <a href="{{ route('inventory.print', request()->route('itemId')) }}"
-                            class="btn btn-primary btn-sm">
-                            <i class="fas fa-print me-1"></i>Print
+                   
+                        <!-- New PDF Download Button -->
+                        <a href="{{ route('inventory-count-form.generate-pdf', ['inventoryFormId' => request()->route('inventoryFormId'), 'itemId' => request()->route('itemId')]) }}"
+                            class="btn btn-danger btn-sm">
+                            <i class="fas fa-file-pdf me-1"></i>Download PDF
                         </a>
                     </div>
                 </div>
@@ -112,7 +113,17 @@
                                     <td class="text-center">{{ $itemDetails->par_no ?? '' }}</td>
                                     <td class="text-center">{{ $itemDetails->original_quantity ?? '' }}</td>
                                     <td class="text-center">{{ $itemDetails->physical_quantity ?? $itemDetails->original_quantity ?? '' }}</td>
-                                    <td class="text-center">{{ $itemDetails->received_by_name ?? '' }}</td>
+                                    <td class="text-center">
+                                        @if($itemDetails->received_by_name)
+                                        {{ $itemDetails->received_by_name }}
+                                        @elseif($itemDetails->issue_transfer_disposal)
+                                        {{ $itemDetails->issue_transfer_disposal }}
+                                        @elseif($itemDetails->location && $itemDetails->location !== 'Not Specified')
+                                        {{ $itemDetails->location }}
+                                        @else
+                                        N/A
+                                        @endif
+                                    </td>
                                     <td class="text-center">{{ $itemDetails->original_quantity ?? '' }}</td>
                                     <td class="text-center amount-cell">
                                         {{ $itemDetails->amount ? '₱' . number_format($itemDetails->amount, 2) : '' }}

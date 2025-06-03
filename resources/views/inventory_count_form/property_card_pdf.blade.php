@@ -3,46 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Property Card PDF - {{ $groupedData->description }}</title>
+    <title>Property Card PDF - {{ $itemDetails->description ?? 'Property Card' }}</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'DejaVu Sans', sans-serif;
             margin: 0;
             padding: 15px;
             font-size: 11px;
             line-height: 1.2;
         }
-        
+
         .property-card {
             border: 2px solid #000;
             width: 100%;
             margin: 0 auto;
         }
-        
+
         .header {
             text-align: center;
             padding: 8px;
             border-bottom: 1px solid #000;
         }
-        
+
         .header h2 {
             margin: 0;
             font-size: 14px;
             text-transform: uppercase;
             font-weight: bold;
         }
-        
+
         .entity-section {
             padding: 6px;
             border-bottom: 1px solid #000;
         }
-        
+
         .property-info {
             display: table;
             width: 100%;
             border-bottom: 1px solid #000;
         }
-        
+
         .property-left {
             display: table-cell;
             width: 75%;
@@ -50,7 +50,7 @@
             border-right: 1px solid #000;
             vertical-align: top;
         }
-        
+
         .property-right {
             display: table-cell;
             width: 25%;
@@ -58,43 +58,43 @@
             vertical-align: middle;
             text-align: center;
         }
-        
+
         .description-section {
             padding: 6px;
             border-bottom: 1px solid #000;
         }
-        
+
         table {
             width: 100%;
             border-collapse: collapse;
             font-size: 9px;
         }
-        
+
         th, td {
             border: 1px solid #000;
             padding: 3px;
             text-align: center;
             vertical-align: middle;
         }
-        
+
         th {
             background-color: #f5f5f5;
             font-weight: bold;
             font-size: 8px;
         }
-        
+
         .header-row-1 th {
             height: 20px;
         }
-        
+
         .header-row-2 th {
             height: 16px;
         }
-        
+
         .data-row td {
             height: 20px;
         }
-        
+
         .col-date { width: 8%; }
         .col-ref { width: 12%; }
         .col-receipt { width: 8%; }
@@ -103,18 +103,28 @@
         .col-balance { width: 8%; }
         .col-amount { width: 10%; }
         .col-remarks { width: 28%; }
-        
+
         .office-officer {
             font-size: 8px;
             line-height: 1.1;
         }
-        
+
         .small-text {
             font-size: 7px;
+            text-align: left;
+            padding: 2px;
         }
-        
+
         strong {
             font-weight: bold;
+        }
+
+        .remarks-cell {
+            text-align: left;
+            vertical-align: top;
+            font-size: 7px;
+            line-height: 1.3;
+            padding: 3px;
         }
     </style>
 </head>
@@ -124,27 +134,30 @@
         <div class="header">
             <h2>Property Card</h2>
         </div>
-        
+
         <!-- Entity Name -->
         <div class="entity-section">
-            <strong>Entity Name:</strong> {{ $groupedData->entity_name }}
+            <strong>Entity Name:</strong> {{ $itemDetails->entity_name ?? 'N/A' }}
         </div>
-        
+
         <!-- Property Info Section -->
         <div class="property-info">
             <div class="property-left">
-                <strong>Property, Plant and Equipment:</strong> {{ $groupedData->description }}
+                <strong>Property, Plant and Equipment:</strong> {{ $itemDetails->article ?? $itemDetails->description ?? 'N/A' }}
             </div>
             <div class="property-right">
-                <strong>Property Number:</strong><br>{{ $groupedData->par_no }}
+                <strong>Property Number:</strong><br>{{ $itemDetails->property_no ?? 'N/A' }}
+                @if($itemDetails->new_property_no)
+                    <br><small>New: {{ $itemDetails->new_property_no }}</small>
+                @endif
             </div>
         </div>
-        
+
         <!-- Description -->
         <div class="description-section">
-            <strong>Description:</strong> {{ $groupedData->description }}
+            <strong>Description:</strong> {{ $itemDetails->description ?? 'N/A' }}
         </div>
-        
+
         <!-- Main Table -->
         <table>
             <thead>
@@ -152,7 +165,7 @@
                     <th rowspan="2" class="col-date">Date</th>
                     <th rowspan="2" class="col-ref">Reference/<br>PAR No.</th>
                     <th colspan="2">Receipt</th>
-                    <th colspan="2">Issue/Transfer/Disposal</th>
+                    <th colspan="1">Issue/Transfer/Disposal</th>
                     <th rowspan="2" class="col-balance">Balance<br>Qty.</th>
                     <th rowspan="2" class="col-amount">Amount</th>
                     <th rowspan="2" class="col-remarks">Remarks</th>
@@ -161,45 +174,46 @@
                     <th class="col-receipt">Qty.</th>
                     <th class="col-qty">Qty.</th>
                     <th class="col-issue">Office/Officer</th>
-                    <th class="col-qty">Qty.</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($propertyCards as $index => $card)
+                <!-- Main Data Row -->
                 <tr class="data-row">
-                    <td>{{ $card->created_at ? $card->created_at->format('m/d/Y') : '' }}</td>
-                    <td>{{ $groupedData->par }}</td>
-                    <td>{{ $index == 0 ? $groupedData->receipt_quantity : '' }}</td>
-                    <td>{{ $card->qty_physical }}</td>
+                    <td>{{ $itemDetails->date_acquired ? \Carbon\Carbon::parse($itemDetails->date_acquired)->format('m/d/Y') : '' }}</td>
+                    <td>{{ $itemDetails->par_no ?? '' }}</td>
+                    <td>{{ $itemDetails->original_quantity ?? '' }}</td>
+                    <td>{{ $itemDetails->physical_quantity ?? $itemDetails->original_quantity ?? '' }}</td>
                     <td class="office-officer">
-                        @if($card->issue_transfer_disposal)
-                            {{ $card->issue_transfer_disposal }}
+                        @if($itemDetails->received_by_name)
+                            {{ $itemDetails->received_by_name }}
+                        @elseif($itemDetails->issue_transfer_disposal)
+                            {{ $itemDetails->issue_transfer_disposal }}
+                        @elseif($itemDetails->location)
+                            {{ $itemDetails->location }}
                         @else
-                            {{ $groupedData->office_name }}<br>
-                            {{ $groupedData->officer_name }}
+                            N/A
                         @endif
                     </td>
-                    <td></td>
-                    <td>{{ $card->balance ?? '' }}</td>
-                    <td>{{ $index == 0 ? '₱' . number_format($groupedData->amount, 2) : '' }}</td>
-                    <td class="small-text">
-                        @if($card->remarks)
-                            {{ $card->remarks }}
-                        @endif
-                        @if($card->condition && $card->condition != 'Good')
-                            <br><strong>Condition:</strong> {{ $card->condition }}
-                        @endif
-                        @if($card->received_by_name)
-                            <br><strong>Received by:</strong> {{ $card->received_by_name }}
+                    <td>{{ $itemDetails->original_quantity ?? '' }}</td>
+                    <td>{{ $itemDetails->amount ? '₱' . number_format($itemDetails->amount, 2) : '' }}</td>
+                    <td class="remarks-cell">
+                        @if($itemDetails->combined_remarks)
+                            {{ $itemDetails->combined_remarks }}
+                        @else
+                            @if($itemDetails->remarks)
+                                {{ $itemDetails->remarks }}
+                            @endif
+                            @if($itemDetails->condition && strtolower($itemDetails->condition) !== 'good')
+                                @if($itemDetails->remarks)<br>@endif
+                                <strong>Condition:</strong> {{ $itemDetails->condition }}
+                            @endif
                         @endif
                     </td>
                 </tr>
-                @endforeach
-                
+
                 <!-- Empty rows for additional entries -->
-                @for($i = count($propertyCards); $i < 12; $i++)
+                @for($i = 0; $i < 11; $i++)
                 <tr class="data-row">
-                    <td>&nbsp;</td>
                     <td>&nbsp;</td>
                     <td>&nbsp;</td>
                     <td>&nbsp;</td>

@@ -153,9 +153,7 @@
             <div class="d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Inventory Count Forms</h5>
                 <div class="d-flex gap-2">
-                    <button class="btn btn-sm btn-outline-secondary" onclick="exportToExcel()">
-                        <i class="fas fa-file-excel"></i> Export
-                    </button>
+               
                     <div class="dropdown">
                         <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
                                 data-bs-toggle="dropdown">

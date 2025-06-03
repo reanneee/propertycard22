@@ -8,15 +8,11 @@
                 <div class="card-header">
                     <h3 class="card-title">Inventory Count Form Details</h3>
                     <div class="card-tools">
-                        <button type="button" class="btn btn-tool" data-card-widget="collapse">
-                            <i class="fas fa-minus"></i>
-                        </button>
+                     
                         <a href="{{ route('inventory-count-form.index') }}" class="btn btn-secondary btn-sm">
                             <i class="fas fa-arrow-left me-1"></i>Back to List
                         </a>
-                        <button type="button" class="btn btn-primary btn-sm" onclick="window.print()">
-                            <i class="fas fa-print me-1"></i>Print Report
-                        </button>
+                        
                     </div>
                 </div>
                 <div class="card-body">
@@ -78,70 +74,63 @@
                         </div>
                     </div>
 
-                    <!-- Statistics -->
-                    <div class="row mb-4">
-                        <div class="col-md-3">
-                            <div class="info-box">
-                                <span class="info-box-icon bg-info"><i class="fas fa-boxes"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">Total Items</span>
-                                    <span class="info-box-number">{{ $totalItems }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="info-box">
-                                <span class="info-box-icon bg-success"><i class="fas fa-check"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">With Property Cards</span>
-                                    <span class="info-box-number">{{ $itemsWithPropertyCards }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="info-box">
-                                <span class="info-box-icon bg-warning"><i class="fas fa-exclamation-triangle"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">Without Property Cards</span>
-                                    <span class="info-box-number">{{ $itemsWithoutPropertyCards }}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="info-box">
-                                <span class="info-box-icon bg-primary"><i class="fas fa-dollar-sign"></i></span>
-                                <div class="info-box-content">
-                                    <span class="info-box-text">Total Value</span>
-                                    <span class="info-box-number">₱{{ number_format($totalValue ?? 0, 2) }}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                 <!-- Statistics -->
+<div class="row mb-4">
+    <!-- Total Items -->
+    <div class="col-md-6 col-xl-3 mb-3">
+        <div class="info-box shadow-sm rounded bg-white p-3 d-flex align-items-center">
+            <span class="info-box-icon bg-info text-white me-3 p-3 rounded-circle">
+                <i class="fas fa-boxes fa-lg"></i>
+            </span>
+            <div class="info-box-content">
+                <span class="info-box-text fw-bold" title="Total number of inventory items">Total Items</span>
+                <span class="info-box-number h5">{{ $totalItems }}</span>
+            </div>
+        </div>
+    </div>
 
-                    <!-- Filter and Export Options -->
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <div class="filter-section">
-                                <label for="conditionFilter" class="form-label">Filter by Condition:</label>
-                                <select id="conditionFilter" class="form-select form-select-sm">
-                                    <option value="">All Conditions</option>
-                                    <option value="Good">Good</option>
-                                    <option value="Fair">Fair</option>
-                                    <option value="Poor">Poor</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6 text-end">
-                            <div class="export-options">
-                                <button type="button" class="btn btn-outline-success btn-sm" onclick="exportToExcel()">
-                                    <i class="fas fa-file-excel me-1"></i>Export Excel
-                                </button>
-                                <button type="button" class="btn btn-outline-danger btn-sm" onclick="exportToPDF()">
-                                    <i class="fas fa-file-pdf me-1"></i>Export PDF
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+    <!-- With Property Cards -->
+    <div class="col-md-6 col-xl-3 mb-3">
+        <div class="info-box shadow-sm rounded bg-white p-3 d-flex align-items-center">
+            <span class="info-box-icon bg-success text-white me-3 p-3 rounded-circle">
+                <i class="fas fa-check fa-lg"></i>
+            </span>
+            <div class="info-box-content">
+                <span class="info-box-text fw-bold" title="Items with registered property cards">With Property Cards</span>
+                <span class="info-box-number h5">{{ $itemsWithPropertyCards }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Without Property Cards -->
+    <div class="col-md-6 col-xl-3 mb-3">
+        <div class="info-box shadow-sm rounded bg-white p-3 d-flex align-items-center">
+            <span class="info-box-icon bg-warning text-dark me-3 p-3 rounded-circle">
+                <i class="fas fa-exclamation-triangle fa-lg"></i>
+            </span>
+            <div class="info-box-content">
+                <span class="info-box-text fw-bold" title="Items missing property cards">Without Property Cards</span>
+                <span class="info-box-number h5">{{ $itemsWithoutPropertyCards }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Value -->
+    <div class="col-md-6 col-xl-3 mb-3">
+        <div class="info-box shadow-sm rounded bg-white p-3 d-flex align-items-center">
+            <span class="info-box-icon bg-primary text-white me-3 p-3 rounded-circle">
+                <i class="fas fa-dollar-sign fa-lg"></i>
+            </span>
+            <div class="info-box-content">
+                <span class="info-box-text fw-bold" title="Total value of all items">Total Value</span>
+                <span class="info-box-number h5">₱{{ number_format($totalValue ?? 0, 2) }}</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+             
 
                     <!-- Inventory Items Table -->
                     <div class="table-responsive">

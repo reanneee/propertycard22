@@ -8,6 +8,7 @@ use App\Models\InventoryCountForm;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\ReceivedEquipmentDescription;
+use Barryvdh\DomPDF\Facade\Pdf;
 class InventoryCountFormController extends Controller
 {
     public function index(Request $request)
@@ -573,83 +574,250 @@ public function saveLinkedEquipmentItem(Request $request)
 
 
    
-public function showItemDetails($inventoryFormId, $itemId)
+// public function showItemDetails($inventoryFormId, $itemId)
+// {
+//     // Get detailed information for a specific item
+//     $itemDetails = DB::table('received_equipment_item as rei')
+//         ->join('received_equipment_description as red', 'rei.description_id', '=', 'red.description_id')
+//         ->join('received_equipment as re', 'red.equipment_id', '=', 're.equipment_id')
+//         ->join('entities as e', 're.entity_id', '=', 'e.entity_id')
+//         ->leftJoin('property_cards as pc', function($join) use ($inventoryFormId) {
+//             $join->on('rei.item_id', '=', 'pc.received_equipment_item_id')
+//                  ->where('pc.inventory_count_form_id', '=', $inventoryFormId);
+//         })
+//         ->leftJoin('locations as l', 'pc.locations_id', '=', 'l.id')
+//         ->leftJoin('linked_equipment_items as lei', 'rei.property_no', '=', 'lei.original_property_no')
+//         ->select(
+//             // Entity Information
+//             'e.entity_name',
+            
+//             // Property Information
+//             'rei.property_no',
+//             DB::raw("CASE 
+//                 WHEN lei.year IS NOT NULL AND lei.reference_mmdd IS NOT NULL AND lei.new_property_no IS NOT NULL AND lei.location IS NOT NULL 
+//                 THEN CONCAT(lei.year, '-', lei.reference_mmdd, '-', lei.new_property_no, '-', lei.location)
+//                 ELSE NULL 
+//             END as new_property_no"),
+            
+//             // Description and Details
+//             'red.description',
+//             'rei.date_acquired',
+//             're.par_no',
+//             'rei.serial_no',
+//             'red.unit',
+            
+//             // Quantity Information
+//             'red.quantity as original_quantity',
+//             'pc.qty_physical as physical_quantity',
+            
+//             // Property Card Information
+//             'pc.issue_transfer_disposal',
+//             'pc.received_by_name',
+//             'rei.amount',
+//             'pc.article',
+//             'pc.remarks',
+//             'pc.condition',
+            
+//             // Location Information
+//             DB::raw("CASE 
+//                 WHEN l.building_name IS NOT NULL THEN 
+//                     CASE 
+//                         WHEN l.office_name IS NOT NULL 
+//                         THEN CONCAT(l.building_name, ' - ', l.office_name)
+//                         ELSE l.building_name
+//                     END
+//                 ELSE 'Not Specified' 
+//             END as location"),
+            
+//             // Additional useful information
+//             'pc.property_card_id',
+//             DB::raw("CASE WHEN pc.property_card_id IS NOT NULL THEN 1 ELSE 0 END as has_property_card")
+//         )
+//         ->where('rei.item_id', $itemId)
+//         ->first();
+
+//     if (!$itemDetails) {
+//         if (request()->ajax()) {
+//             return response()->json(['error' => 'Item not found'], 404);
+//         }
+//         abort(404, 'Item not found');
+//     }
+
+//     // Return JSON for AJAX request or view for regular request
+//     if (request()->ajax()) {
+//         return response()->json($itemDetails);
+//     }
+
+//     return view('inventory_count_form.item_details', compact('itemDetails'));
+// }
+
+
+public function showItemDetails($inventoryFormId, $itemId) 
+{     
+    // Get detailed information for a specific item     
+    $itemDetails = DB::table('received_equipment_item as rei')         
+        ->join('received_equipment_description as red', 'rei.description_id', '=', 'red.description_id')         
+        ->join('received_equipment as re', 'red.equipment_id', '=', 're.equipment_id')         
+        ->join('entities as e', 're.entity_id', '=', 'e.entity_id')         
+        ->leftJoin('property_cards as pc', function($join) use ($inventoryFormId) {             
+            $join->on('rei.item_id', '=', 'pc.received_equipment_item_id')                  
+                 ->where('pc.inventory_count_form_id', '=', $inventoryFormId);         
+        })         
+        ->leftJoin('locations as l', 'pc.locations_id', '=', 'l.id')         
+        ->leftJoin('linked_equipment_items as lei', 'rei.property_no', '=', 'lei.original_property_no')         
+        ->select(             
+            // Entity Information             
+            'e.entity_name',                          
+            // Property Information             
+            'rei.property_no',             
+            DB::raw("CASE                  
+                WHEN lei.year IS NOT NULL AND lei.reference_mmdd IS NOT NULL AND lei.new_property_no IS NOT NULL AND lei.location IS NOT NULL                  
+                THEN CONCAT(lei.year, '-', lei.reference_mmdd, '-', lei.new_property_no, '-', lei.location)                 
+                ELSE NULL              
+            END as new_property_no"),                          
+            // Description and Details             
+            'red.description',             
+            'rei.date_acquired',             
+            're.par_no',             
+            'rei.serial_no',             
+            'red.unit',                          
+            // Quantity Information             
+            'red.quantity as original_quantity',             
+            'pc.qty_physical as physical_quantity',                          
+            // Property Card Information             
+            'pc.issue_transfer_disposal',             
+            'pc.received_by_name',             
+            'rei.amount',             
+            'pc.article',             
+            'pc.remarks',             
+            'pc.condition',                          
+            // Location Information             
+            DB::raw("CASE                  
+                WHEN l.building_name IS NOT NULL THEN                      
+                    CASE                          
+                        WHEN l.office_name IS NOT NULL                          
+                        THEN CONCAT(l.building_name, ' - ', l.office_name)                         
+                        ELSE l.building_name                     
+                    END                 
+                ELSE 'Not Specified'              
+            END as location"),                          
+            // Additional useful information             
+            'pc.property_card_id',             
+            DB::raw("CASE WHEN pc.property_card_id IS NOT NULL THEN 1 ELSE 0 END as has_property_card")         
+        )         
+        ->where('rei.item_id', $itemId)         
+        ->first();      
+
+    if (!$itemDetails) {         
+        if (request()->ajax()) {             
+            return response()->json(['error' => 'Item not found'], 404);         
+        }         
+        abort(404, 'Item not found');     
+    }      
+
+    // Process remarks and condition for PDF
+    $combinedRemarks = $this->combineRemarksAndCondition($itemDetails->remarks, $itemDetails->condition);
+    $itemDetails->combined_remarks = $combinedRemarks;
+
+    // Return JSON for AJAX request or view for regular request     
+    if (request()->ajax()) {         
+        return response()->json($itemDetails);     
+    }      
+
+    return view('inventory_count_form.item_details', compact('itemDetails')); 
+}
+
+/**
+ * Generate PDF for property card
+ */
+public function generatePDF($inventoryFormId, $itemId)
 {
-    // Get detailed information for a specific item
-    $itemDetails = DB::table('received_equipment_item as rei')
-        ->join('received_equipment_description as red', 'rei.description_id', '=', 'red.description_id')
-        ->join('received_equipment as re', 'red.equipment_id', '=', 're.equipment_id')
-        ->join('entities as e', 're.entity_id', '=', 'e.entity_id')
-        ->leftJoin('property_cards as pc', function($join) use ($inventoryFormId) {
-            $join->on('rei.item_id', '=', 'pc.received_equipment_item_id')
-                 ->where('pc.inventory_count_form_id', '=', $inventoryFormId);
-        })
-        ->leftJoin('locations as l', 'pc.locations_id', '=', 'l.id')
-        ->leftJoin('linked_equipment_items as lei', 'rei.property_no', '=', 'lei.original_property_no')
-        ->select(
-            // Entity Information
-            'e.entity_name',
-            
-            // Property Information
-            'rei.property_no',
-            DB::raw("CASE 
-                WHEN lei.year IS NOT NULL AND lei.reference_mmdd IS NOT NULL AND lei.new_property_no IS NOT NULL AND lei.location IS NOT NULL 
-                THEN CONCAT(lei.year, '-', lei.reference_mmdd, '-', lei.new_property_no, '-', lei.location)
-                ELSE NULL 
-            END as new_property_no"),
-            
-            // Description and Details
-            'red.description',
-            'rei.date_acquired',
-            're.par_no',
-            'rei.serial_no',
-            'red.unit',
-            
-            // Quantity Information
-            'red.quantity as original_quantity',
-            'pc.qty_physical as physical_quantity',
-            
-            // Property Card Information
-            'pc.issue_transfer_disposal',
-            'pc.received_by_name',
-            'rei.amount',
-            'pc.article',
-            'pc.remarks',
-            'pc.condition',
-            
-            // Location Information
-            DB::raw("CASE 
-                WHEN l.building_name IS NOT NULL THEN 
-                    CASE 
-                        WHEN l.office_name IS NOT NULL 
-                        THEN CONCAT(l.building_name, ' - ', l.office_name)
-                        ELSE l.building_name
-                    END
-                ELSE 'Not Specified' 
-            END as location"),
-            
-            // Additional useful information
-            'pc.property_card_id',
-            DB::raw("CASE WHEN pc.property_card_id IS NOT NULL THEN 1 ELSE 0 END as has_property_card")
-        )
-        ->where('rei.item_id', $itemId)
+    // Get the same item details
+    $itemDetails = DB::table('received_equipment_item as rei')         
+        ->join('received_equipment_description as red', 'rei.description_id', '=', 'red.description_id')         
+        ->join('received_equipment as re', 'red.equipment_id', '=', 're.equipment_id')         
+        ->join('entities as e', 're.entity_id', '=', 'e.entity_id')         
+        ->leftJoin('property_cards as pc', function($join) use ($inventoryFormId) {             
+            $join->on('rei.item_id', '=', 'pc.received_equipment_item_id')                  
+                 ->where('pc.inventory_count_form_id', '=', $inventoryFormId);         
+        })         
+        ->leftJoin('locations as l', 'pc.locations_id', '=', 'l.id')         
+        ->leftJoin('linked_equipment_items as lei', 'rei.property_no', '=', 'lei.original_property_no')         
+        ->select(             
+            'e.entity_name',                          
+            'rei.property_no',             
+            DB::raw("CASE                  
+                WHEN lei.year IS NOT NULL AND lei.reference_mmdd IS NOT NULL AND lei.new_property_no IS NOT NULL AND lei.location IS NOT NULL                  
+                THEN CONCAT(lei.year, '-', lei.reference_mmdd, '-', lei.new_property_no, '-', lei.location)                 
+                ELSE NULL              
+            END as new_property_no"),                          
+            'red.description',             
+            'rei.date_acquired',             
+            're.par_no',             
+            'rei.serial_no',             
+            'red.unit',                          
+            'red.quantity as original_quantity',             
+            'pc.qty_physical as physical_quantity',                          
+            'pc.issue_transfer_disposal',             
+            'pc.received_by_name as received_by_name',             
+            'rei.amount',             
+            'pc.article',             
+            'pc.remarks',             
+            'pc.condition',                          
+            DB::raw("CASE                  
+                WHEN l.building_name IS NOT NULL THEN                      
+                    CASE                          
+                        WHEN l.office_name IS NOT NULL                          
+                        THEN CONCAT(l.building_name, ' - ', l.office_name)                         
+                        ELSE l.building_name                     
+                    END                 
+                ELSE 'Not Specified'              
+            END as location"),                          
+            'pc.property_card_id',             
+            DB::raw("CASE WHEN pc.property_card_id IS NOT NULL THEN 1 ELSE 0 END as has_property_card")         
+        )         
+        ->where('rei.item_id', $itemId)         
         ->first();
 
     if (!$itemDetails) {
-        if (request()->ajax()) {
-            return response()->json(['error' => 'Item not found'], 404);
-        }
         abort(404, 'Item not found');
     }
 
-    // Return JSON for AJAX request or view for regular request
-    if (request()->ajax()) {
-        return response()->json($itemDetails);
-    }
+    // Combine remarks and condition
+    $itemDetails->combined_remarks = $this->combineRemarksAndCondition($itemDetails->remarks, $itemDetails->condition);
 
-    return view('inventory_count_form.item_details', compact('itemDetails'));
+    // Generate PDF
+    $pdf = PDF::loadView('inventory_count_form.property_card_pdf', compact('itemDetails'));
+    
+    // Set paper size and orientation
+    $pdf->setPaper('A4', 'portrait');
+    
+    // Generate filename
+    $filename = 'Property_Card_' . ($itemDetails->property_no ?? 'Unknown') . '_' . date('Y-m-d') . '.pdf';
+    
+    return $pdf->download($filename);
 }
 
+/**
+ * Helper method to combine remarks and condition
+ */
+private function combineRemarksAndCondition($remarks, $condition)
+{
+    $combinedParts = [];
+    
+    // Add remarks if exists
+    if (!empty($remarks) && trim($remarks) !== '') {
+        $combinedParts[] = trim($remarks);
+    }
+    
+    // Add condition if exists and not "Good" (assuming Good is default)
+    if (!empty($condition) && trim($condition) !== '' && strtolower($condition) !== 'good') {
+        $combinedParts[] = 'Condition: ' . trim($condition);
+    }
+    
+    // Join with line break or separator
+    return implode(' | ', $combinedParts);
+}
 public function editItemDetails($inventoryFormId, $itemId)
 {
     // Get the same detailed information as showItemDetails
