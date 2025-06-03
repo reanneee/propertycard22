@@ -31,7 +31,7 @@
         }
 
         .content-header {
-            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            background: linear-gradient(135deg, #1e3a8a 0%, #34495e 100%);
             color: white;
             padding: 40px 30px;
             border-radius: 8px;
@@ -40,6 +40,7 @@
         }
 
         .content-title {
+            color: white;
             font-size: 2.5rem;
             font-weight: 600;
             margin-bottom: 8px;
@@ -248,7 +249,9 @@
         @media (max-width: 1024px) {
             .chart-grid {
                 grid-template-columns: 1fr;
+                ;
             }
+            
         }
 
         @media (max-width: 768px) {
