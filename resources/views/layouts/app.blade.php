@@ -61,13 +61,14 @@
             width: 40px;
             height: 40px;
             background: var(--psu-accent);
-            border-radius: 10px;
+            border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-right: 12px;
-            color: var(--psu-primary);
+            color: white;
             font-size: 1.2rem;
+            border: 20;
         }
 
         .header .user-section {
@@ -431,10 +432,10 @@
     <header class="header">
         <div class="logo-section">
             <div class="logo-icon">
-                <i class="fas fa-university"></i>
+            <img src="{{ asset('images/Pangasinan_State_University_logo.png') }}" alt="University Logo" style="width: 40px; height: 40px;">
             </div>
             <div>
-                <div>PSU Property Stock Card</div>
+                <div>Property Stock Card</div>
                 <div style="font-size: 0.8rem; opacity: 0.8;">Pangasinan State University</div>
             </div>
         </div>

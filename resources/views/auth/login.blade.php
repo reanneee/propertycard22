@@ -341,6 +341,7 @@
             .university-logo {
                 width: 70px;
                 height: 70px;
+          
             }
 
             .university-logo i {
@@ -383,7 +384,7 @@
         <!-- Header -->
         <div class="auth-header">
             <div class="university-logo">
-                <i class="fas fa-university"></i>
+            <img src="{{ asset('images/Pangasinan_State_University_logo.png') }}" alt="University Logo" style="width: 80px; height: 80px;">
             </div>
             <h1 class="auth-title">PSU Property Stock Card</h1>
             <p class="auth-subtitle">Pangasinan State University</p>
