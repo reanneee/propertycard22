@@ -142,6 +142,17 @@
         .serial-cell {
             text-align: left !important;
         }
+
+        /* Total amount row styling */
+        .total-row {
+            font-weight: bold;
+            background-color: #ffffff;
+        }
+
+        .total-row td {
+            border-top: 2px solid #000;
+            padding: 6px 4px;
+        }
     </style>
 </head>
 
@@ -219,6 +230,11 @@
             </tr>
             @endforeach
             @endforeach
+
+            <tr class="total-row">
+                <td colspan="5" style="text-align: right; font-weight: bold;">Total Amount</td>
+                <td style="font-weight: bold;">₱{{ number_format($equipment->amount, 2) }}</td>
+            </tr>
         </tbody>
     </table>
 

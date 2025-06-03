@@ -1141,100 +1141,159 @@ public function updateItemDetails(Request $request, $inventoryFormId, $itemId)
 
         return view('inventory.report', compact('inventoryForm', 'inventoryData', 'summary'));
     }
-    public function print($id)
-    {
-        try {
-            // Get the inventory count form details (same as your show method)
-            $inventoryForm = DB::table('inventory_count_form as icf')
-                ->join('entities as e', 'icf.entity_id', '=', 'e.entity_id')
-                ->join('branches as b', 'e.branch_id', '=', 'b.branch_id')
-                ->join('fund_clusters as fc', 'e.fund_cluster_id', '=', 'fc.id')
-                ->join('funds as f', 'icf.fund_id', '=', 'f.id')
-                ->select(
-                    'icf.*',
-                    'e.entity_name',
-                    'b.branch_name',
-                    'fc.name as fund_cluster_name',
-                    'f.account_code as fund_account_code'
-                )
-                ->where('icf.id', $id)
-                ->first();
-    
-            if (!$inventoryForm) {
-                abort(404, 'Inventory form not found');
-            }
-    
-            // Get detailed inventory items (same as your show method)
-            $inventoryItems = DB::table('received_equipment_item as rei')
-                ->join('received_equipment_description as red', 'rei.description_id', '=', 'red.description_id')
-                ->join('received_equipment as re', 'red.equipment_id', '=', 're.equipment_id')
-                ->join('entities as e', 're.entity_id', '=', 'e.entity_id')
-                ->leftJoin('property_cards as pc', 'rei.item_id', '=', 'pc.received_equipment_item_id')
-                ->leftJoin('locations as l', 'pc.locations_id', '=', 'l.id')
-                ->leftJoin('linked_equipment_items as lei', 'rei.property_no', '=', 'lei.original_property_no')
-                ->select(
-                    // Article/Item Description
-                    'red.description as article_description',
-                    'pc.article',
-                    
-                    // Old Property No.
-                    'rei.property_no as old_property_no',
-                    
-                    // New Property No. (constructed from linked_equipment_items)
-                    DB::raw("CASE 
-                        WHEN lei.year IS NOT NULL AND lei.reference_mmdd IS NOT NULL AND lei.new_property_no IS NOT NULL AND lei.location IS NOT NULL 
-                        THEN CONCAT(lei.year, '-', lei.reference_mmdd, '-', lei.new_property_no, '-', lei.location)
-                        ELSE NULL 
-                    END as new_property_no"),
-                    
-                    // Unit of Measurement
-                    'red.unit',
-                    
-                    // Unit Value
-                    'rei.amount as unit_value',
-                    
-                    // Quantity per Property Card
-                    'pc.qty_physical as quantity_per_property_card',
-                    
-                    // Quantity per Physical Count
-                    'pc.qty_physical as quantity_per_physical_count',
-                    
-                    // Location/Whereabouts
-                    DB::raw("CASE 
-                        WHEN l.building_name IS NOT NULL THEN 
-                            CASE 
-                                WHEN l.office_name IS NOT NULL 
-                                THEN CONCAT(l.building_name, ' - ', l.office_name)
-                                ELSE l.building_name
-                            END
-                        ELSE 'Not Specified' 
-                    END as location_whereabouts"),
-                    
-                    // Condition
-                    'pc.condition',
-                    
-                    // Remarks
-                    'pc.remarks',
-                    
-                    // Additional information
-                    'rei.serial_no',
-                    'rei.date_acquired',
-                    'red.quantity as original_quantity'
-                )
-                ->where('e.entity_id', $inventoryForm->entity_id)
-                ->orderBy('red.description')
-                ->orderBy('rei.property_no')
-                ->get();
-    
-            // Return the print view
-            return view('inventory_count_form.print', compact('inventoryForm', 'inventoryItems'));
-            
-        } catch (\Exception $e) {
-            // Handle error - redirect back with error message
-            return redirect()->back()->with('error', 'Unable to generate print view: ' . $e->getMessage());
+ public function print($id)
+{
+    try {
+        // Get the inventory count form details
+        $inventoryForm = DB::table('inventory_count_form as icf')
+            ->join('entities as e', 'icf.entity_id', '=', 'e.entity_id')
+            ->join('branches as b', 'e.branch_id', '=', 'b.branch_id')
+            ->join('fund_clusters as fc', 'e.fund_cluster_id', '=', 'fc.id')
+            ->join('funds as f', 'icf.fund_id', '=', 'f.id')
+            ->select(
+                'icf.*',
+                'e.entity_name',
+                'b.branch_name',
+                'fc.name as fund_cluster_name',
+                'f.account_code as fund_account_code'
+            )
+            ->where('icf.id', $id)
+            ->first();
+
+        if (!$inventoryForm) {
+            abort(404, 'Inventory form not found');
         }
+
+        $inventoryItems = DB::table('received_equipment_item as rei')
+            ->join('received_equipment_description as red', 'rei.description_id', '=', 'red.description_id')
+            ->join('received_equipment as re', 'red.equipment_id', '=', 're.equipment_id')
+            ->join('entities as e', 're.entity_id', '=', 'e.entity_id')
+            ->leftJoin('property_cards as pc', function($join) use ($id) {
+                $join->on('rei.item_id', '=', 'pc.received_equipment_item_id')
+                     ->where('pc.inventory_count_form_id', '=', $id);
+            })
+            ->leftJoin('locations as l', 'pc.locations_id', '=', 'l.id')
+            ->leftJoin('linked_equipment_items as lei', 'rei.property_no', '=', 'lei.original_property_no')
+            ->select(
+                'rei.item_id',
+                'red.description as article_description',
+                'pc.article',
+                'rei.property_no as old_property_no',
+                'red.unit',
+                'rei.amount as unit_value',
+                'rei.serial_no',
+                'rei.date_acquired',
+                're.par_no',
+                
+                DB::raw("CASE 
+                    WHEN lei.year IS NOT NULL AND lei.reference_mmdd IS NOT NULL AND lei.new_property_no IS NOT NULL AND lei.location IS NOT NULL 
+                    THEN CONCAT(lei.year, '-', lei.reference_mmdd, '-', lei.new_property_no, '-', lei.location)
+                    ELSE 'Not Assigned' 
+                END as new_property_no"),
+                
+                // Quantity Information
+                'red.quantity as original_quantity',
+                'pc.qty_physical as quantity_per_property_card',
+                'pc.qty_physical as quantity_per_physical_count',
+                
+                // LOCATION - Enhanced handling
+                'l.id as location_id',
+                'l.building_name',
+                'l.office_name',
+                'l.officer_name',
+                DB::raw("CASE 
+                    WHEN l.building_name IS NOT NULL THEN 
+                        CASE 
+                            WHEN l.office_name IS NOT NULL AND l.office_name != '' 
+                            THEN CONCAT(l.building_name, ' - ', l.office_name)
+                            ELSE l.building_name
+                        END
+                    ELSE 'Location Not Specified' 
+                END as location_whereabouts"),
+                
+                // CONDITION - Fixed with backticks to escape reserved keyword
+                DB::raw("CASE 
+                    WHEN pc.condition IS NOT NULL AND pc.condition != '' 
+                    THEN pc.condition 
+                    ELSE 'Not Specified' 
+                END as `condition`"),
+                
+                // REMARKS - Ensure it's properly selected
+                DB::raw("CASE 
+                    WHEN pc.remarks IS NOT NULL AND pc.remarks != '' 
+                    THEN pc.remarks 
+                    ELSE '' 
+                END as remarks"),
+                
+                // Additional Property Card Information
+                'pc.issue_transfer_disposal',
+                'pc.received_by_name',
+                'pc.property_card_id',
+                
+                // Calculated fields
+                DB::raw('(rei.amount * COALESCE(pc.qty_physical, 1)) as total_value'),
+                DB::raw("CASE WHEN pc.property_card_id IS NOT NULL THEN 1 ELSE 0 END as has_property_card")
+            )
+            ->where('e.entity_id', $inventoryForm->entity_id)
+            ->orderBy('red.description')
+            ->orderBy('rei.property_no')
+            ->get();
+
+        // Group items by description for better organization (optional)
+        $groupedItems = $inventoryItems->groupBy('article_description');
+
+        // Calculate summary statistics including condition breakdown
+        $totalItems = $inventoryItems->count();
+        $totalValue = $inventoryItems->sum('total_value');
+        $itemsWithPropertyCards = $inventoryItems->where('has_property_card', 1)->count();
+        
+        // Condition statistics - access using array notation due to reserved keyword
+        $conditionSummary = $inventoryItems->groupBy(function($item) {
+            return $item->condition;
+        })->map(function($items) {
+            return $items->count();
+        })->toArray();
+        
+        // Location statistics
+        $locationSummary = $inventoryItems->groupBy('location_whereabouts')->map(function($items) {
+            return $items->count();
+        })->toArray();
+
+        // Log for debugging (optional - remove in production)
+        Log::info('Print view data prepared', [
+            'inventory_form_id' => $id,
+            'total_items' => $totalItems,
+            'items_with_location' => $inventoryItems->where('location_whereabouts', '!=', 'Location Not Specified')->count(),
+            'items_with_condition' => $inventoryItems->filter(function($item) {
+                return $item->condition != 'Not Specified';
+            })->count(),
+            'items_with_remarks' => $inventoryItems->where('remarks', '!=', '')->count(),
+        ]);
+
+        // Return the print view with all necessary data
+        return view('inventory_count_form.print', compact(
+            'inventoryForm', 
+            'inventoryItems', 
+            'groupedItems',
+            'totalItems',
+            'totalValue',
+            'itemsWithPropertyCards',
+            'conditionSummary',
+            'locationSummary'
+        ));
+        
+    } catch (\Exception $e) {
+        // Log the error for debugging
+        Log::error('Error generating print view', [
+            'inventory_form_id' => $id,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        
+        // Handle error - redirect back with error message
+        return redirect()->back()->with('error', 'Unable to generate print view: ' . $e->getMessage());
     }
-    
+}
    
     /**
      * Show the form for editing the specified resource.
@@ -1259,4 +1318,7 @@ public function updateItemDetails(Request $request, $inventoryFormId, $itemId)
     {
         //
     }
+
+
+    
 }

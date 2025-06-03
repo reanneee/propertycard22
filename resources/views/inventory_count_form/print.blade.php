@@ -274,7 +274,7 @@
                     </td>
                     <td class="text-center">{{ $item->quantity_per_property_card ?? 0 }}</td>
                     <td class="text-center">{{ $item->quantity_per_physical_count ?? 0 }}</td>
-                    <td>{{ $item->location_whereabouts }}</td>
+                    <td>{{ $item->location_whereabouts}}</td>
                     <td class="text-center">{{ $item->condition }}</td>
                     <td>{{ $item->remarks }}</td>
                 </tr>

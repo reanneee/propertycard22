@@ -368,7 +368,7 @@
                                         <small>Physical Count</small>
                                     </div>
                                     <div class="col-md-3">
-                                        <h4 id="summaryTotalValue" class="text-warning">₱0.00</h4>
+                                        <h4 id="summaryTotalValue" class="text-danger">₱0.00</h4>
                                         <small>Total Value</small>
                                     </div>
                                 </div>

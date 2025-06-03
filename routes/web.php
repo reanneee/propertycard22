@@ -134,4 +134,15 @@ Route::middleware('auth')->group(function () {
 // Alternative route if you want it simpler
 Route::get('/property-card/{itemId}/pdf', [InventoryCountFormController::class, 'generatePDF'])
     ->name('property-card.pdf');
+
+
+    Route::prefix('inventory-stats')->name('inventory-stats.')->group(function () {
+    Route::get('/total-forms', [InventoryCountFormController::class, 'showTotalForms'])->name('total-forms');
+    Route::get('/total-items', [InventoryCountFormController::class, 'showTotalItems'])->name('total-items');
+    Route::get('/this-month-forms', [InventoryCountFormController::class, 'showThisMonthForms'])->name('this-month-forms');
+    Route::get('/total-value', [InventoryCountFormController::class, 'showTotalValue'])->name('total-value');
 });
+});
+
+
+
