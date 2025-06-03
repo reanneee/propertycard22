@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class ReceivedEquipment extends Model
 {
@@ -23,6 +24,8 @@ class ReceivedEquipment extends Model
         'verified_by_designation',
         'receipt_date',
         'par_no',
+        'created_by',
+        'updated_by',
     ];
 
     protected $casts = [
@@ -31,61 +34,66 @@ class ReceivedEquipment extends Model
         'amount' => 'decimal:2',
     ];
 
-    // Relationship with Entity
+    protected static function boot()
+{
+    parent::boot();
+
+    static::creating(function ($model) {
+        if (Auth::check()) {
+            $model->created_by = Auth::id();
+        }
+
+        if (empty($model->par_no)) {
+            $year = Carbon::now()->format('Y');
+            $month = Carbon::now()->format('m');
+
+            $serial = self::whereYear('created_at', $year)
+                ->whereMonth('created_at', $month)
+                ->count() + 1;
+
+            $serialFormatted = str_pad($serial, 4, '0', STR_PAD_LEFT);
+            $model->par_no = "{$year}-{$month}-{$serialFormatted}";
+        }
+    });
+
+    static::updating(function ($model) {
+        if (Auth::check()) {
+            $model->updated_by = Auth::id();
+        }
+    });
+}
+
+    // Relationships
     public function entity()
     {
         return $this->belongsTo(Entity::class, 'entity_id', 'entity_id');
     }
 
-    // Relationship with ReceivedEquipmentDescription
     public function descriptions()
     {
         return $this->hasMany(ReceivedEquipmentDescription::class, 'equipment_id', 'equipment_id');
     }
 
-    // Keep existing items relationship (direct relationship)
     public function items()
     {
         return $this->hasMany(ReceivedEquipmentItem::class, 'equipment_id', 'equipment_id');
     }
 
-    // Helper method to get all items through descriptions
     public function allItems()
     {
         return $this->hasManyThrough(
             ReceivedEquipmentItem::class,
             ReceivedEquipmentDescription::class,
-            'equipment_id', // Foreign key on descriptions table
-            'description_id', // Foreign key on items table
-            'equipment_id', // Local key on equipment table
-            'description_id' // Local key on descriptions table
+            'equipment_id',
+            'description_id',
+            'equipment_id',
+            'description_id'
         );
     }
 
-    // Keep existing boot method for PAR number generation
-    public static function boot()
-    {
-        parent::boot();
-
-        static::creating(function ($equipment) {
-            if (empty($equipment->par_no)) {
-                $year = Carbon::now()->format('Y');
-                $month = Carbon::now()->format('m');
-
-                $serial = self::whereYear('created_at', $year)
-                    ->whereMonth('created_at', $month)
-                    ->count() + 1;
-
-                $serialFormatted = str_pad($serial, 4, '0', STR_PAD_LEFT);
-                $equipment->par_no = "{$year}-{$month}-{$serialFormatted}";
-            }
-        });
-    }
-
-    // Helper methods
     public function getTotalItemsAttribute()
     {
-        return $this->descriptions->sum(function($description) {
+        return $this->descriptions->sum(function ($description) {
             return $description->items->count();
         });
     }
@@ -93,5 +101,16 @@ class ReceivedEquipment extends Model
     public function getTotalQuantityAttribute()
     {
         return $this->descriptions->sum('quantity');
+    }
+
+     public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+
+    public function updatedBy()
+    {
+        return $this->belongsTo(User::class, 'updated_by');
     }
 }
