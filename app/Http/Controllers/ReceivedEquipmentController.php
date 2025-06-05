@@ -60,8 +60,12 @@ class ReceivedEquipmentController extends Controller
              'equipments.*.items' => 'required|array|min:1',
              'equipments.*.items.*.property_no' => 'required|string',
              'equipments.*.items.*.serial_no' => 'nullable|string',
+              'equipments.*.quantity' => 'required|integer|min:1|not_in:-1', 
              'equipments.*.items.*.date_acquired' => 'required|date',
              'equipments.*.items.*.amount' => 'required|numeric|min:0',
+         ],[
+              'equipments.*.quantity.not_in' => 'Quantity cannot be -1. Please enter a valid positive number.',
+    'equipments.*.quantity.min' => 'Quantity must be at least 1.',
          ]);
      
          // Calculate total amount across all items
