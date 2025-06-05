@@ -25,21 +25,13 @@ class ReceivedEquipmentItem extends Model
         'amount' => 'decimal:2',
     ];
 
-    /**
-     * Get the description this item belongs to
-     */
-    public function description()
-    {
-        return $this->belongsTo(ReceivedEquipmentDescription::class, 'description_id', 'description_id');
-    }
-
-    /**
-     * Alternative method name for the description relationship
-     */
-    public function receivedEquipmentDescription()
-    {
-        return $this->belongsTo(ReceivedEquipmentDescription::class, 'description_id', 'description_id');
-    }
+    // /**
+    //  * Get the description this item belongs to
+    //  */
+    // public function description()
+    // {
+    //     return $this->belongsTo(ReceivedEquipmentDescription::class, 'description_id', 'description_id');
+    // }
 
     /**
      * Get the equipment through description (indirect relationship)
@@ -55,7 +47,11 @@ class ReceivedEquipmentItem extends Model
             'equipment_id' // Local key on descriptions table
         );
     }
-
+    public function receivedEquipmentItem()
+    {
+        return $this->belongsTo(ReceivedEquipmentItem::class, 'received_equipment_item_id', 'item_id')
+                    ->with('description'); // Eager load the description
+    }
     /**
      * Get the entity through equipment and description
      */
@@ -96,4 +92,10 @@ class ReceivedEquipmentItem extends Model
     {
         return !empty($this->serial_no);
     }
+
+    public function receivedEquipmentDescription()
+{
+    return $this->belongsTo(ReceivedEquipmentDescription::class, 'description_id', 'description_id');
+}
+
 }

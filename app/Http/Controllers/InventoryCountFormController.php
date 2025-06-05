@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Fund;
 use Illuminate\Http\Request;
 use App\Models\InventoryCountForm;
+use App\Models\PropertyCard;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\ReceivedEquipmentDescription;
@@ -12,6 +13,18 @@ use Barryvdh\DomPDF\Facade\Pdf;
 class InventoryCountFormController extends Controller
 {
     public function index(Request $request)
+    {
+        // Determine view mode - 'forms' or 'items'
+        $viewMode = $request->get('view_mode', 'forms');
+        
+        if ($viewMode === 'items') {
+            return $this->showItemsView($request);
+        }
+        
+        return $this->showFormsView($request);
+    }
+    
+    private function showFormsView(Request $request)
     {
         // Build the query with relationships
         $query = InventoryCountForm::with(['entity', 'fund'])
@@ -30,26 +43,27 @@ class InventoryCountFormController extends Controller
             $query->where('fund_id', $request->filter_fund);
         }
     
-        // Apply date filters
-        if ($request->filled('filter_date')) {
-            switch ($request->filter_date) {
-                case 'today':
-                    $query->whereDate('inventory_date', today());
-                    break;
-                case 'week':
-                    $query->whereBetween('inventory_date', [
-                        now()->startOfWeek(),
-                        now()->endOfWeek()
-                    ]);
-                    break;
-                case 'month':
-                    $query->whereMonth('inventory_date', now()->month)
-                          ->whereYear('inventory_date', now()->year);
-                    break;
-                case 'year':
-                    $query->whereYear('inventory_date', now()->year);
-                    break;
-            }
+        // Apply date range filters
+        if ($request->filled('date_from')) {
+            $query->whereDate('inventory_date', '>=', $request->date_from);
+        }
+    
+        if ($request->filled('date_to')) {
+            $query->whereDate('inventory_date', '<=', $request->date_to);
+        }
+    
+        // Filter for forms with items (statistical card filter)
+        if ($request->filled('has_items')) {
+            $query->has('propertyCards');
+        }
+    
+        // Filter for high-value forms (statistical card filter)
+        if ($request->filled('min_value')) {
+            $minValue = $request->min_value;
+            $query->whereHas('propertyCards', function($q) use ($minValue) {
+                $q->join('received_equipment_item', 'property_cards.received_equipment_item_id', '=', 'received_equipment_item.item_id')
+                  ->havingRaw('SUM(property_cards.qty_physical * received_equipment_item.amount) >= ?', [$minValue]);
+            });
         }
     
         // Order by latest first
@@ -63,32 +77,133 @@ class InventoryCountFormController extends Controller
         $funds = DB::table('funds')->orderBy('account_code')->get();
     
         // Calculate statistics
-        $totalForms = InventoryCountForm::count();
-        $totalItems = DB::table('property_cards')
-            ->join('inventory_count_form', function($join) {
-                // Fixed: Use the correct column name from schema
-                $join->on('property_cards.inventory_count_form_id', '=', 'inventory_count_form.id');
-            })
-            ->count();
+        $stats = $this->calculateStatistics($request);
+    
+        return view('inventory_count_form.index', array_merge(compact(
+            'inventoryForms',
+            'entities', 
+            'funds'
+        ), $stats, ['viewMode' => 'forms']));
+    }
+    
+    private function showItemsView(Request $request)
+{
+    // Build query for individual items with proper joins
+    $query = PropertyCard::with([
+        'inventoryCountForm.entity', 
+        'inventoryCountForm.fund', 
+        'receivedEquipmentItem.description' // Include description relationship
+    ])
+    ->join('inventory_count_form', 'property_cards.inventory_count_form_id', '=', 'inventory_count_form.id')
+    ->join('received_equipment_item', 'property_cards.received_equipment_item_id', '=', 'received_equipment_item.item_id')
+    ->join('received_equipment_description', 'received_equipment_item.description_id', '=', 'received_equipment_description.description_id') // Add this join
+    ->select('property_cards.*');
+
+    // Apply the same filters but at item level
+    if ($request->filled('search_title')) {
+        $query->where('inventory_count_form.title', 'like', '%' . $request->search_title . '%');
+    }
+
+    // Add search by description
+    if ($request->filled('search_description')) {
+        $query->where('received_equipment_description.description', 'like', '%' . $request->search_description . '%');
+    }
+
+    if ($request->filled('filter_entity')) {
+        $query->where('inventory_count_form.entity_id', $request->filter_entity);
+    }
+
+    if ($request->filled('filter_fund')) {
+        $query->where('inventory_count_form.fund_id', $request->filter_fund);
+    }
+
+    if ($request->filled('date_from')) {
+        $query->whereDate('inventory_count_form.inventory_date', '>=', $request->date_from);
+    }
+
+    if ($request->filled('date_to')) {
+        $query->whereDate('inventory_count_form.inventory_date', '<=', $request->date_to);
+    }
+
+    if ($request->filled('min_value')) {
+        $minValue = $request->min_value;
+        $query->havingRaw('(property_cards.qty_physical * received_equipment_item.amount) >= ?', [$minValue]);
+    }
+
+    // Order by latest first
+    $query->orderBy('inventory_count_form.created_at', 'desc');
+
+    // Paginate results
+    $inventoryItems = $query->paginate(15);
+
+    // Get filter data
+    $entities = DB::table('entities')->orderBy('entity_name')->get();
+    $funds = DB::table('funds')->orderBy('account_code')->get();
+
+    // Calculate statistics
+    $stats = $this->calculateStatistics($request);
+
+    return view('inventory_count_form.items', array_merge(compact(
+        'inventoryItems', 'entities', 'funds'
+    ), $stats, ['viewMode' => 'items']));
+}
+
+    
+    private function calculateStatistics($request = null)
+    {
+        // Base queries for statistics
+        $formsQuery = InventoryCountForm::query();
+        $itemsQuery = PropertyCard::join('inventory_count_form', 'property_cards.inventory_count_form_id', '=', 'inventory_count_form.id');
+        
+        // Apply same filters to statistics if any
+        if ($request) {
+            if ($request->filled('filter_entity')) {
+                $formsQuery->where('entity_id', $request->filter_entity);
+                $itemsQuery->where('inventory_count_form.entity_id', $request->filter_entity);
+            }
+            
+            if ($request->filled('filter_fund')) {
+                $formsQuery->where('fund_id', $request->filter_fund);
+                $itemsQuery->where('inventory_count_form.fund_id', $request->filter_fund);
+            }
+            
+            if ($request->filled('date_from')) {
+                $formsQuery->whereDate('inventory_date', '>=', $request->date_from);
+                $itemsQuery->whereDate('inventory_count_form.inventory_date', '>=', $request->date_from);
+            }
+            
+            if ($request->filled('date_to')) {
+                $formsQuery->whereDate('inventory_date', '<=', $request->date_to);
+                $itemsQuery->whereDate('inventory_count_form.inventory_date', '<=', $request->date_to);
+            }
+        }
+        
+        $totalForms = $formsQuery->count();
+        $totalItems = $itemsQuery->count();
         
         $thisMonth = InventoryCountForm::whereMonth('created_at', now()->month)
             ->whereYear('created_at', now()->year)
             ->count();
         
-        // Calculate total value - FIXED: Use 'amount' instead of 'unit_value'
+        // Calculate total value
         $totalValue = DB::table('property_cards')
             ->join('received_equipment_item', 'property_cards.received_equipment_item_id', '=', 'received_equipment_item.item_id')
+            ->join('inventory_count_form', 'property_cards.inventory_count_form_id', '=', 'inventory_count_form.id')
+            ->when($request && $request->filled('filter_entity'), function($q) use ($request) {
+                return $q->where('inventory_count_form.entity_id', $request->filter_entity);
+            })
+            ->when($request && $request->filled('filter_fund'), function($q) use ($request) {
+                return $q->where('inventory_count_form.fund_id', $request->filter_fund);
+            })
+            ->when($request && $request->filled('date_from'), function($q) use ($request) {
+                return $q->whereDate('inventory_count_form.inventory_date', '>=', $request->date_from);
+            })
+            ->when($request && $request->filled('date_to'), function($q) use ($request) {
+                return $q->whereDate('inventory_count_form.inventory_date', '<=', $request->date_to);
+            })
             ->sum(DB::raw('property_cards.qty_physical * received_equipment_item.amount'));
-    
-        return view('inventory_count_form.index', compact(
-            'inventoryForms',
-            'entities', 
-            'funds',
-            'totalForms',
-            'totalItems',
-            'thisMonth',
-            'totalValue'
-        ));
+        
+        return compact('totalForms', 'totalItems', 'thisMonth', 'totalValue');
     }
     /**
      * Show the form for creating a new resource.

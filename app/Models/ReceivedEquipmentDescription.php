@@ -26,6 +26,8 @@ class ReceivedEquipmentDescription extends Model
     /**
      * Get the parent equipment
      */
+
+     
     public function equipment()
     {
         return $this->belongsTo(ReceivedEquipment::class, 'equipment_id', 'equipment_id');
