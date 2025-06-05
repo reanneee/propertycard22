@@ -9,16 +9,12 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        // Total Entities
         $totalEntities = DB::table('entities')->count();
 
-        // Total Equipment Items (from received_equipment_item table)
         $totalEquipmentItems = DB::table('received_equipment_item')->count();
 
-        // Total Property Cards
         $totalPropertyCards = DB::table('property_cards')->count();
 
-        // Available Items (property cards where received_by_name is blank/null)
         $availableItems = DB::table('property_cards')
             ->where(function($query) {
                 $query->whereNull('received_by_name')

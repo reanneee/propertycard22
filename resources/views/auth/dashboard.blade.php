@@ -112,7 +112,7 @@
 
         .stat-label {
             font-size: 0.95rem;
-            color: #6c757d;
+            color: white;
             font-weight: 500;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -240,18 +240,29 @@
             color: #2c3e50;
         }
 
-        .metric-label {
+        .metric-label, .stat-member {
             font-size: 0.9rem;
-            color: #6c757d;
+            color: white;
             margin-top: 5px;
         }
+
+        .chart-container, 
+    .chart-container h3, 
+    .metrics-grid .metric-item, 
+    .metric-value, 
+    .metric-label {
+        color: black;
+    }
+
+    .stat-number, .content-subtitle {
+    color: white !important;
+}
+
 
         @media (max-width: 1024px) {
             .chart-grid {
                 grid-template-columns: 1fr;
-                ;
             }
-            
         }
 
         @media (max-width: 768px) {
